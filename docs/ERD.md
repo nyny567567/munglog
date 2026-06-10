@@ -1,5 +1,7 @@
 # ERD
 
+![munglog ERD](ERD.png)
+
 ## 엔티티
 
 - User
@@ -27,10 +29,12 @@
 | email       | VARCHAR(255) | 이메일        |
 | password    | VARCHAR(255) | 비밀번호       |
 | nickname    | VARCHAR(50)  | 닉네임        |
+| role        | VARCHAR(20)  | 권한 (ROLE_USER, ROLE_ADMIN) |
 | region_code | VARCHAR(20)  | 행정동 코드     |
 | region_name | VARCHAR(100) | 지역명        |
 | created_at  | DATETIME     | 생성일        |
 | updated_at  | DATETIME     | 수정일        |
+| deleted_at  | DATETIME     | 삭제일 (Soft Delete) |
 
 ---
 
@@ -64,6 +68,7 @@
 | diary_date | DATE         | 일기 작성 날짜    |
 | created_at | DATETIME     | 생성일         |
 | updated_at | DATETIME     | 수정일         |
+| deleted_at | DATETIME     | 삭제일 (Soft Delete) |
 
 ---
 
@@ -91,6 +96,7 @@
 | region_name | VARCHAR(100) | 지역명         |
 | created_at  | DATETIME     | 생성일         |
 | updated_at  | DATETIME     | 수정일         |
+| deleted_at  | DATETIME     | 삭제일 (Soft Delete) |
 
 ---
 
