@@ -8,7 +8,6 @@
 - Dog
 - Diary
 - DiaryImage
-- Post
 - Comment
 
 ## 관계
@@ -16,8 +15,7 @@
 - User 1:N Dog
 - Dog 1:N Diary
 - Diary 1:N DiaryImage
-- User 1:N Post
-- Post 1:N Comment
+- Diary 1:N Comment
 - User 1:N Comment
 
 
@@ -59,16 +57,19 @@
 
 # Diary
 
-| 컬럼명        | 타입           | 설명          |
-| ---------- | ------------ | ----------- |
-| id         | BIGINT       | 일기 ID (PK)  |
-| dog_id     | BIGINT       | 반려견 ID (FK) |
-| title      | VARCHAR(100) | 제목          |
-| content    | TEXT         | 내용          |
-| diary_date | DATE         | 일기 작성 날짜    |
-| created_at | DATETIME     | 생성일         |
-| updated_at | DATETIME     | 수정일         |
-| deleted_at | DATETIME     | 삭제일 (Soft Delete) |
+| 컬럼명                | 타입           | 설명               |
+|--------------------|--------------|------------------|
+| id                 | BIGINT       | 일기 ID (PK)       |
+| dog_id             | BIGINT       | 반려견 ID (FK)      |
+| title              | VARCHAR(100) | 제목               |
+| content            | TEXT         | 내용               |
+| diary_date         | DATE         | 일기 작성 날짜        |
+| is_public          | BOOLEAN      | 전체 공개 여부        |
+| is_comment_allowed | BOOLEAN      | 댓글 허용 여부        |
+| view_count         | INT          | 조회수              |
+| created_at         | DATETIME     | 생성일              |
+| updated_at         | DATETIME     | 수정일              |
+| deleted_at         | DATETIME     | 삭제일 (Soft Delete) |
 
 ---
 
@@ -84,28 +85,12 @@
 
 ---
 
-# Post
-
-| 컬럼명         | 타입           | 설명          |
-| ----------- | ------------ | ----------- |
-| id          | BIGINT       | 게시글 ID (PK) |
-| user_id     | BIGINT       | 작성자 ID (FK) |
-| title       | VARCHAR(100) | 제목          |
-| content     | TEXT         | 내용          |
-| region_code | VARCHAR(20)  | 지역 코드       |
-| region_name | VARCHAR(100) | 지역명         |
-| created_at  | DATETIME     | 생성일         |
-| updated_at  | DATETIME     | 수정일         |
-| deleted_at  | DATETIME     | 삭제일 (Soft Delete) |
-
----
-
 # Comment
 
 | 컬럼명        | 타입            | 설명          |
-| ---------- | ------------- | ----------- |
+|------------|---------------| ----------- |
 | id         | BIGINT        | 댓글 ID (PK)  |
-| post_id    | BIGINT        | 게시글 ID (FK) |
+| diary_id   | BIGINT        | 일기 ID (FK) |
 | user_id    | BIGINT        | 작성자 ID (FK) |
 | content    | VARCHAR(1000) | 댓글 내용       |
 | created_at | DATETIME      | 생성일         |
