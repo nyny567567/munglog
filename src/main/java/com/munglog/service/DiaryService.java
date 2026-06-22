@@ -1,11 +1,13 @@
 package com.munglog.service;
 
+import com.munglog.dto.DiaryResponse;
 import com.munglog.entity.Diary;
 import com.munglog.repository.DiaryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -25,4 +27,9 @@ public class DiaryService {
 
         return diaryRepository.save(newDiary);
     }
+
+    public List<DiaryResponse> getAllDiaries() {
+        return diaryRepository.findAll().stream().map(diary -> new DiaryResponse(diary.getId(), diary.getContent())).toList();
+    }
+
 }
