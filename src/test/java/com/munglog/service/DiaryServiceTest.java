@@ -26,11 +26,6 @@ class DiaryServiceTest {
     @Autowired
     DiaryRepository diaryRepository;
 
-    @BeforeEach
-    void setUp() {
-        diaryRepository.deleteAll();
-    }
-
     @Test
     void 일기_정상_저장_성공_테스트() {
         String content = "일기 저장 테스트 content";
