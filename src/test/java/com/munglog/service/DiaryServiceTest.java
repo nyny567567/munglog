@@ -53,7 +53,24 @@ class DiaryServiceTest {
         assertThat(responses).hasSize(2);
         assertThat(responses.get(0).content()).isEqualTo("첫 번째 테스트 일기");
         assertThat(responses.get(1).content()).isEqualTo("두 번째 테스트 일기");
+    }
 
+    @Test
+    void 일기_단건_조회_성공_테스트() {
+        Diary savedDiary = diaryService.createDiary("단건 조회 테스트용 일기");
+        Long targetId = savedDiary.getId();
+
+        DiaryResponse response = diaryService.getDiary(targetId);
+
+        assertThat(response.id()).isEqualTo(targetId);
+        assertThat(response.content()).isEqualTo("단건 조회 테스트용 일기");
+    }
+
+    @Test
+    void 존재하지_않는_일기_조회시_에러발생_테스트() {
+        Long invalidId = 999L;
+
+        assertThatThrownBy(() -> diaryService.getDiary(invalidId)).isInstanceOf(IllegalArgumentException.class).hasMessage("해당 일기를 찾을 수 없습니다.");
     }
 
 }
