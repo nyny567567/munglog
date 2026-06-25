@@ -31,4 +31,11 @@ public class DiaryController {
         return ResponseEntity.ok(responses);
     }
 
+    //단건 조회 API
+    @GetMapping("/{id}")
+    public ResponseEntity<DiaryResponse> getDiary(@PathVariable Long id) {
+        DiaryResponse response = diaryService.getDiary(id);
+        return ResponseEntity.ok(response);
+    }
+
 }
