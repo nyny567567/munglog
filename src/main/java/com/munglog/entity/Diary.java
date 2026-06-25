@@ -3,6 +3,7 @@ package com.munglog.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
@@ -23,5 +24,9 @@ public class Diary {
     public Diary(String content, LocalDateTime createdAt) {
         this.content = content;
         this.createdAt = createdAt;
+    }
+
+    public void updateContent(String newContent) {
+        this.content = newContent;
     }
 }

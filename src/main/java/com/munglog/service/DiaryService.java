@@ -40,4 +40,12 @@ public class DiaryService {
 
        return new DiaryResponse((diary.getId()), diary.getContent());
     }
+
+    @Transactional
+    public void updateDiary(Long id, String newContent) {
+        Diary diary = diaryRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("해당 일기를 찾을 수 없습니다."));
+
+        diary.updateContent(newContent);
+
+    }
 }

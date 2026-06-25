@@ -73,4 +73,22 @@ class DiaryServiceTest {
         assertThatThrownBy(() -> diaryService.getDiary(invalidId)).isInstanceOf(IllegalArgumentException.class).hasMessage("해당 일기를 찾을 수 없습니다.");
     }
 
+    @Test
+    void 일기_수정_성공_테스트() {
+        Diary savedDiary = diaryService.createDiary("수정 전 일기 내용");
+        Long targetId = savedDiary.getId();
+
+        diaryService.updateDiary(targetId, "수정 후 일기 내용");
+
+        DiaryResponse response = diaryService.getDiary(targetId);
+        assertThat(response.content()).isEqualTo("수정 후 일기 내용");
+    }
+
+    @Test
+    void 존재하지_않는_다이어리_수정시_에러발생_테스트() {
+        Long invalidId = 999L;
+
+        assertThatThrownBy(() -> diaryService.updateDiary(invalidId, "새로운 내용")).isInstanceOf(IllegalArgumentException.class).hasMessage("해당 일기를 찾을 수 없습니다.");
+    }
+
 }
