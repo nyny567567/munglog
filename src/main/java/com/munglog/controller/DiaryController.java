@@ -2,6 +2,7 @@ package com.munglog.controller;
 
 import com.munglog.dto.DiaryRequest;
 import com.munglog.dto.DiaryResponse;
+import com.munglog.dto.DiaryUpdateRequest;
 import com.munglog.entity.Diary;
 import com.munglog.service.DiaryService;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +37,20 @@ public class DiaryController {
     public ResponseEntity<DiaryResponse> getDiary(@PathVariable Long id) {
         DiaryResponse response = diaryService.getDiary(id);
         return ResponseEntity.ok(response);
+    }
+
+    //일기 수정 API
+    @PutMapping("/{id}")
+    public ResponseEntity<Void> updateDiary(@PathVariable Long id, @RequestBody DiaryUpdateRequest request) {
+        diaryService.updateDiary(id, request.content());
+        return ResponseEntity.ok().build();
+    }
+
+    //일기 삭제 API
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteDiary(@PathVariable Long id) {
+        diaryService.deleteDiary(id);
+        return ResponseEntity.ok().build();
     }
 
 }
