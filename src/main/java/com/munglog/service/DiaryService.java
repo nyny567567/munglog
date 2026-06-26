@@ -48,4 +48,11 @@ public class DiaryService {
         diary.updateContent(newContent);
 
     }
+
+    @Transactional
+    public void deleteDiary(Long id) {
+        Diary diary = diaryRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("해당 일기를 찾을 수 없습니다."));
+
+        diaryRepository.delete(diary);
+    }
 }
