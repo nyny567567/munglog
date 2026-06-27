@@ -6,6 +6,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -16,8 +18,14 @@ public class Diary {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 1000)
-    private String content;
+    @OneToMany(mappedBy = "diary", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<DiaryPage> pages = new ArrayList<>();
+
+    //페이지와 일기 부모 - 자식 관계 연결
+    public void addPage(DiaryPage page) {
+        this.pages.add(page);
+        page.assignDiary(this);
+    }
 
     private LocalDateTime createdAt;
 
