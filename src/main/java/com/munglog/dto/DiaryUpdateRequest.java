@@ -1,4 +1,7 @@
 package com.munglog.dto;
 
-public record DiaryUpdateRequest(String content) {
+import java.util.List;
+
+public record DiaryUpdateRequest(List<DiaryPageUpdateRequest> pages) {
+    public record DiaryPageUpdateRequest(Long pageId, String mediaUrl, String content, int pageOrder) {}
 }
