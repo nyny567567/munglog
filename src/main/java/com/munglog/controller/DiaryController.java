@@ -20,9 +20,9 @@ public class DiaryController {
 
     //일기 생성 API
     @PostMapping
-    public ResponseEntity<Diary> createDiary(@RequestBody DiaryRequest request) {
-        Diary savedDiary = diaryService.createDiary(request.content());
-        return ResponseEntity.ok(savedDiary);
+    public ResponseEntity<Long> createDiary(@RequestBody DiaryRequest request) {
+        Long savedDiaryId = diaryService.createDiary(request);
+        return ResponseEntity.ok(savedDiaryId);
     }
 
     //전체 조회 API
@@ -41,8 +41,8 @@ public class DiaryController {
 
     //일기 수정 API
     @PutMapping("/{id}")
-    public ResponseEntity<Void> updateDiary(@PathVariable Long id, @RequestBody DiaryUpdateRequest request) {
-        diaryService.updateDiary(id, request.content());
+    public ResponseEntity<Void> updateDiary(@PathVariable Long id, @RequestBody DiaryRequest request) {
+        diaryService.updateDiaryEntirely(id, request);
         return ResponseEntity.ok().build();
     }
 
