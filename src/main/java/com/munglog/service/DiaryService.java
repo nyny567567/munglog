@@ -56,27 +56,26 @@ public class DiaryService {
     }
 
     @Transactional
-    public void updatePage(Long diaryId, Long pageId, DiaryRequest.DiaryPageRequest request) {
-        Diary diary = diaryRepository.findById(diaryId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 일기를 찾을 수 없습니다."));
-
-        DiaryPage page = diaryPageRepository.findById(pageId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 페이지를 찾을 수 없습니다."));
-
-        page.updatePage(request.mediaUrl(), request.content(), request.pageOrder());
-
-        List<DiaryPage> pages = diary.getPages();
-        pages.sort(Comparator.comparingInt(DiaryPage::getPageOrder));
-
-        for (int i = 0; i < pages.size(); i++) {
-            pages.get(i).updateOrder(i + 1);
-        }
-    }
-
-    @Transactional
     public void deleteDiary(Long id) {
         Diary diary = diaryRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("해당 일기를 찾을 수 없습니다."));
 
         diaryRepository.delete(diary);
+    }
+
+    @Transactional
+    public void updateDiaryEntirely(Long diaryId, DiaryRequest request) {
+        Diary diary = diaryRepository.findById(diaryId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 일기를 찾을 수 없습니다."));
+
+        diary.getPages().clear();
+
+        List<DiaryRequest.DiaryPageRequest> newPages = request.pages();
+        for (int i = 0; i < newPages.size(); i++) {
+            DiaryRequest.DiaryPageRequest pageReq = newPages.get(i);
+
+            DiaryPage newPage = pageReq.toEntity(i + 1);
+
+            diary.addPage(newPage);
+        }
     }
 }
