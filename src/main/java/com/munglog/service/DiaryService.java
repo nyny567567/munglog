@@ -50,6 +50,7 @@ public class DiaryService {
        Diary diary =  diaryRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("해당 일기를 찾을 수 없습니다."));
 
        List<DiaryResponse.DiaryPageResponse> pageResponses = diary.getPages().stream()
+               .sorted(Comparator.comparingInt(DiaryPage::getPageOrder))
                .map(p -> new DiaryResponse.DiaryPageResponse(p.getId(), p.getMediaUrl(), p.getContent(), p.getPageOrder())).toList();
 
        return new DiaryResponse((diary.getId()), diary.getCreatedAt(), pageResponses);
