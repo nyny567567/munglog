@@ -1,5 +1,6 @@
 package com.munglog.controller;
 
+import com.munglog.dto.LoginRequest;
 import com.munglog.dto.SignupRequest;
 import com.munglog.service.MemberService;
 import lombok.RequiredArgsConstructor;
@@ -22,5 +23,11 @@ public class MemberController {
         memberService.signup(request);
 
         return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<String> login(@RequestBody LoginRequest request) {
+        memberService.login(request);
+        return ResponseEntity.ok("로그인 성공!");
     }
 }

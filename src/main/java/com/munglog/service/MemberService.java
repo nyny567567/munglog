@@ -1,5 +1,6 @@
 package com.munglog.service;
 
+import com.munglog.dto.LoginRequest;
 import com.munglog.dto.SignupRequest;
 import com.munglog.entity.Member;
 import com.munglog.repository.MemberRepository;
@@ -27,5 +28,14 @@ public class MemberService {
         Member newMember = request.toEntity(encodedPassword);
 
         memberRepository.save(newMember);
+    }
+
+    public void login(LoginRequest request) {
+        Member member = memberRepository.findByEmail(request.email())
+                .orElseThrow(() -> new IllegalArgumentException("이메일 또는 비밀번호가 일치하지 않습니다."));
+
+        if (!passwordEncoder.matches(request.password(), member.getPassword())) {
+            throw new IllegalArgumentException("이메일 또는 비밀번호가 일치하지 않습니다.");
+        }
     }
 }
