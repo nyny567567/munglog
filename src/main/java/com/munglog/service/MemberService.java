@@ -1,5 +1,6 @@
 package com.munglog.service;
 
+import com.munglog.config.JwtUtil;
 import com.munglog.dto.LoginRequest;
 import com.munglog.dto.SignupRequest;
 import com.munglog.entity.Member;
@@ -18,6 +19,8 @@ public class MemberService {
 
     private final PasswordEncoder passwordEncoder;
 
+    private final JwtUtil jwtUtil;
+
     public void signup(SignupRequest request) {
         if (memberRepository.existsByEmail(request.email())) {
             throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
@@ -30,12 +33,14 @@ public class MemberService {
         memberRepository.save(newMember);
     }
 
-    public void login(LoginRequest request) {
+    public String login(LoginRequest request) {
         Member member = memberRepository.findByEmail(request.email())
                 .orElseThrow(() -> new IllegalArgumentException("이메일 또는 비밀번호가 일치하지 않습니다."));
 
         if (!passwordEncoder.matches(request.password(), member.getPassword())) {
             throw new IllegalArgumentException("이메일 또는 비밀번호가 일치하지 않습니다.");
         }
+
+        return jwtUtil.createToken(member.getEmail());
     }
 }

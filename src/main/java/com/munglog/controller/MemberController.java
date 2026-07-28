@@ -3,13 +3,12 @@ package com.munglog.controller;
 import com.munglog.dto.LoginRequest;
 import com.munglog.dto.SignupRequest;
 import com.munglog.service.MemberService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/members")
@@ -27,7 +26,18 @@ public class MemberController {
 
     @PostMapping("/login")
     public ResponseEntity<String> login(@RequestBody LoginRequest request) {
-        memberService.login(request);
-        return ResponseEntity.ok("로그인 성공!");
+        String token = memberService.login(request);
+        return ResponseEntity.ok(token);
+    }
+
+    @GetMapping("/test")
+    public ResponseEntity<String> jwtTest(HttpServletRequest request) {
+        String email = (String) request.getAttribute("authenticatedEmail");
+
+        if (email != null) {
+            return ResponseEntity.ok(email + "님, 환영합니다!");
+        } else {
+            return ResponseEntity.status(401).body("유효한 토큰이 없습니다.");
+        }
     }
 }
