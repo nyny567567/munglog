@@ -5,7 +5,9 @@ import com.munglog.dto.DiaryResponse;
 import com.munglog.dto.DiaryUpdateRequest;
 import com.munglog.entity.Diary;
 import com.munglog.service.DiaryService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,8 +22,14 @@ public class DiaryController {
 
     //일기 생성 API
     @PostMapping
-    public ResponseEntity<Long> createDiary(@RequestBody DiaryRequest request) {
-        Long savedDiaryId = diaryService.createDiary(request);
+    public ResponseEntity<Long> createDiary(@RequestBody DiaryRequest request, HttpServletRequest httpRequest) {
+        String email = (String) httpRequest.getAttribute("authenticatedEmail");
+
+        if (email == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        Long savedDiaryId = diaryService.createDiary(request, email);
         return ResponseEntity.ok(savedDiaryId);
     }
 
