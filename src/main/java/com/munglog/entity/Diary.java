@@ -22,6 +22,10 @@ public class Diary {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id")
+    private Member member;
+
     @CreatedDate
     @Column(updatable = false)
     private LocalDateTime createdAt;
@@ -29,8 +33,10 @@ public class Diary {
     @OneToMany(mappedBy = "diary", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<DiaryPage> pages = new ArrayList<>();
 
-    public static Diary createDiary() {
-        return new Diary();
+    public static Diary createDiary(Member member) {
+        Diary diary = new Diary();
+        diary.member = member;
+        return diary;
     }
 
     //페이지와 일기 부모 - 자식 관계 연결

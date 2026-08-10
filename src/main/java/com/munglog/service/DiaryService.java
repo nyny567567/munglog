@@ -4,13 +4,14 @@ import com.munglog.dto.DiaryRequest;
 import com.munglog.dto.DiaryResponse;
 import com.munglog.entity.Diary;
 import com.munglog.entity.DiaryPage;
+import com.munglog.entity.Member;
 import com.munglog.repository.DiaryPageRepository;
 import com.munglog.repository.DiaryRepository;
+import com.munglog.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 
@@ -21,11 +22,15 @@ public class DiaryService {
 
     private final DiaryRepository diaryRepository;
     private final DiaryPageRepository diaryPageRepository;
+    private final MemberRepository memberRepository;
 
     @Transactional
-    public Long createDiary(DiaryRequest request) {
+    public Long createDiary(DiaryRequest request, String email) {
 
-        Diary diary = Diary.createDiary();
+        Member member = memberRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
+
+        Diary diary = Diary.createDiary(member);
 
         request.pages().forEach(pageDto -> {
             DiaryPage page = DiaryPage.builder().mediaUrl(pageDto.mediaUrl())
@@ -42,7 +47,13 @@ public class DiaryService {
                     List<DiaryResponse.DiaryPageResponse> pageResponses = diary.getPages().stream()
                             .map(p -> new DiaryResponse.DiaryPageResponse(p.getId(), p.getMediaUrl(), p.getContent(), p.getPageOrder()))
                             .toList();
-                    return new DiaryResponse(diary.getId(), diary.getCreatedAt(), pageResponses);
+                    return new DiaryResponse(
+                            diary.getId(),
+                            diary.getMember().getId(),
+                            diary.getMember().getNickname(),
+                            diary.getCreatedAt(),
+                            pageResponses
+                    );
                 }).toList();
     }
 
@@ -53,20 +64,30 @@ public class DiaryService {
                .sorted(Comparator.comparingInt(DiaryPage::getPageOrder))
                .map(p -> new DiaryResponse.DiaryPageResponse(p.getId(), p.getMediaUrl(), p.getContent(), p.getPageOrder())).toList();
 
-       return new DiaryResponse((diary.getId()), diary.getCreatedAt(), pageResponses);
+       return new DiaryResponse(
+               diary.getId(),
+               diary.getMember().getId(),
+               diary.getMember().getNickname(),
+               diary.getCreatedAt(),
+               pageResponses
+       );
     }
 
     @Transactional
-    public void deleteDiary(Long id) {
+    public void deleteDiary(Long id, String loginEmail) {
         Diary diary = diaryRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("해당 일기를 찾을 수 없습니다."));
+
+        validateDiaryOwner(diary, loginEmail);
 
         diaryRepository.delete(diary);
     }
 
     @Transactional
-    public void updateDiaryEntirely(Long diaryId, DiaryRequest request) {
+    public void updateDiaryEntirely(Long diaryId, DiaryRequest request, String loginEmail) {
         Diary diary = diaryRepository.findById(diaryId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 일기를 찾을 수 없습니다."));
+
+        validateDiaryOwner(diary, loginEmail);
 
         diary.getPages().clear();
 
@@ -79,4 +100,11 @@ public class DiaryService {
             diary.addPage(newPage);
         }
     }
+
+    private void validateDiaryOwner(Diary diary, String loginEmail) {
+        if (!diary.getMember().getEmail().equals(loginEmail)) {
+            throw new IllegalArgumentException("본인의 일기만 접근할 수 있습니다.");
+        }
+    }
+
 }
