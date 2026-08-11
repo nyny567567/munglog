@@ -30,7 +30,7 @@ public class DiaryService {
         Member member = memberRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
 
-        Diary diary = Diary.createDiary(member);
+        Diary diary = Diary.createDiary(member, request.isPublic(), request.isCommentAllowed());
 
         request.pages().forEach(pageDto -> {
             DiaryPage page = DiaryPage.builder().mediaUrl(pageDto.mediaUrl())
@@ -51,6 +51,8 @@ public class DiaryService {
                             diary.getId(),
                             diary.getMember().getId(),
                             diary.getMember().getNickname(),
+                            diary.isPublic(),
+                            diary.isCommentAllowed(),
                             diary.getCreatedAt(),
                             pageResponses
                     );
@@ -68,6 +70,8 @@ public class DiaryService {
                diary.getId(),
                diary.getMember().getId(),
                diary.getMember().getNickname(),
+               diary.isPublic(),
+               diary.isCommentAllowed(),
                diary.getCreatedAt(),
                pageResponses
        );
@@ -88,6 +92,8 @@ public class DiaryService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 일기를 찾을 수 없습니다."));
 
         validateDiaryOwner(diary, loginEmail);
+
+        diary.update(request.isPublic(), request.isCommentAllowed());
 
         diary.getPages().clear();
 

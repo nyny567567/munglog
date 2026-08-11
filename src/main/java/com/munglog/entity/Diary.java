@@ -33,9 +33,17 @@ public class Diary {
     @OneToMany(mappedBy = "diary", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<DiaryPage> pages = new ArrayList<>();
 
-    public static Diary createDiary(Member member) {
+    @Column(nullable = false)
+    private boolean isPublic;
+
+    @Column(nullable = false)
+    private boolean isCommentAllowed;
+
+    public static Diary createDiary(Member member, boolean isPublic, boolean isCommentAllowed) {
         Diary diary = new Diary();
         diary.member = member;
+        diary.isPublic = isPublic;
+        diary.isCommentAllowed = isCommentAllowed;
         return diary;
     }
 
@@ -43,5 +51,10 @@ public class Diary {
     public void addPage(DiaryPage page) {
         this.pages.add(page);
         page.assignDiary(this);
+    }
+
+    public void update(boolean isPublic, boolean isCommentAllowed) {
+        this.isPublic = isPublic;
+        this.isCommentAllowed = isCommentAllowed;
     }
 }
