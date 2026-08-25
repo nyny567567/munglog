@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -49,15 +50,15 @@ public class DiaryController {
 
     //일기 수정 API
     @PutMapping("/{id}")
-    public ResponseEntity<Void> updateDiary(@PathVariable Long id, @RequestBody DiaryRequest request) {
-        diaryService.updateDiaryEntirely(id, request);
+    public ResponseEntity<Void> updateDiary(@PathVariable Long id, @RequestBody DiaryRequest request, @AuthenticationPrincipal String loginEmail) {
+        diaryService.updateDiaryEntirely(id, request, loginEmail);
         return ResponseEntity.ok().build();
     }
 
     //일기 삭제 API
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteDiary(@PathVariable Long id) {
-        diaryService.deleteDiary(id);
+    public ResponseEntity<Void> deleteDiary(@PathVariable Long id, @AuthenticationPrincipal String loginEmail) {
+        diaryService.deleteDiary(id, loginEmail);
         return ResponseEntity.ok().build();
     }
 
