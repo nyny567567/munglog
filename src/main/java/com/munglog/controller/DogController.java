@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -47,5 +48,21 @@ public class DogController {
     public ResponseEntity<DogResponse> getDogById(@PathVariable Long id) {
         DogResponse dogResponse = dogService.getDogById(id);
         return ResponseEntity.ok(dogResponse);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<DogResponse> updateDog(
+            @PathVariable Long id,
+            @RequestBody DogRequest dogRequest,
+            Principal principal) {
+
+        DogResponse dogResponse = dogService.updateDog(id, dogRequest, principal.getName());
+        return ResponseEntity.ok(dogResponse);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteDog(@PathVariable Long id, Principal principal) {
+        dogService.deleteDog(id, principal.getName());
+        return ResponseEntity.ok("강아지 정보가 성공적으로 삭제되었습니다.");
     }
 }

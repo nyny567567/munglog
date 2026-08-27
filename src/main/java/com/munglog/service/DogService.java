@@ -51,4 +51,39 @@ public class DogService {
         return new DogResponse(dog);
 
     }
+
+    @Transactional
+    public DogResponse updateDog(Long id, DogRequest dogRequest, String loginEmail) {
+        Dog dog = dogRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("해당 강아지를 찾을 수 없습니다."));
+
+        if (!dog.getMember().getEmail().equals(loginEmail)) {
+            throw new IllegalArgumentException("자신의 강아지 정보만 수정할 수 있습니다.");
+        }
+
+        dog.updateDog(
+                dogRequest.name(),
+                dogRequest.breed(),
+                dogRequest.birthDate(),
+                dogRequest.familyDate(),
+                dogRequest.gender(),
+                dogRequest.neutered(),
+                dogRequest.description(),
+                dogRequest.profileImageUrl()
+        );
+
+        return new DogResponse(dog);
+    }
+
+    @Transactional
+    public void deleteDog(Long id, String loginEmail) {
+        Dog dog = dogRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("해당 강아지를 찾을 수 없습니다."));
+
+        if (!dog.getMember().getEmail().equals(loginEmail)) {
+            throw new IllegalArgumentException("자신의 강아지 정보만 삭제할 수 있습니다.");
+        }
+
+        dogRepository.delete(dog);
+    }
 }
