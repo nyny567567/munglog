@@ -8,7 +8,9 @@ import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,9 +41,27 @@ public class Diary {
     @Column(nullable = false)
     private boolean isCommentAllowed;
 
-    public static Diary createDiary(Member member, boolean isPublic, boolean isCommentAllowed) {
+    @Column(nullable = false)
+    private LocalDate diaryDate;
+
+    @Column(nullable = false)
+    private LocalTime diaryTime;
+
+    @Column(length = 50)
+    private String weather;
+
+    public static Diary createDiary(
+            Member member,
+            LocalDate diaryDate,
+            LocalTime diaryTime,
+            String weather,
+            boolean isPublic,
+            boolean isCommentAllowed) {
         Diary diary = new Diary();
         diary.member = member;
+        diary.diaryDate = diaryDate;
+        diary.diaryTime = diaryTime;
+        diary.weather = weather;
         diary.isPublic = isPublic;
         diary.isCommentAllowed = isCommentAllowed;
         return diary;

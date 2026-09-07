@@ -30,7 +30,14 @@ public class DiaryService {
         Member member = memberRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
 
-        Diary diary = Diary.createDiary(member, request.isPublic(), request.isCommentAllowed());
+        Diary diary = Diary.createDiary(
+                member,
+                request.date(),
+                request.time(),
+                request.weather(),
+                request.isPublic(),
+                request.isCommentAllowed()
+        );
 
         request.pages().forEach(pageDto -> {
             DiaryPage page = DiaryPage.builder().mediaUrl(pageDto.mediaUrl())
