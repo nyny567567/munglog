@@ -4,9 +4,11 @@ import com.munglog.dto.DiaryRequest;
 import com.munglog.dto.DiaryResponse;
 import com.munglog.entity.Diary;
 import com.munglog.entity.DiaryPage;
+import com.munglog.entity.Dog;
 import com.munglog.entity.Member;
 import com.munglog.repository.DiaryPageRepository;
 import com.munglog.repository.DiaryRepository;
+import com.munglog.repository.DogRepository;
 import com.munglog.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -23,6 +25,7 @@ public class DiaryService {
     private final DiaryRepository diaryRepository;
     private final DiaryPageRepository diaryPageRepository;
     private final MemberRepository memberRepository;
+    private final DogRepository dogRepository;
 
     @Transactional
     public Long createDiary(DiaryRequest request, String email) {
@@ -30,8 +33,15 @@ public class DiaryService {
         Member member = memberRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
 
+        Dog dog = dogRepository.findById(request.dogId())
+                .orElseThrow(() -> new IllegalArgumentException("해당 강아지를 찾을 수 없습니다."));
+
+        if(!dog.getMember().getId().equals(member.getId())) {
+            throw new IllegalStateException("해당 강아지의 일기를 작성할 수 없습니다");
+        }
+
         Diary diary = Diary.createDiary(
-                member,
+                dog,
                 request.date(),
                 request.time(),
                 request.weather(),
@@ -56,8 +66,8 @@ public class DiaryService {
                             .toList();
                     return new DiaryResponse(
                             diary.getId(),
-                            diary.getMember().getId(),
-                            diary.getMember().getNickname(),
+                            diary.getDog().getMember().getId(),
+                            diary.getDog().getMember().getNickname(),
                             diary.isPublic(),
                             diary.isCommentAllowed(),
                             diary.getCreatedAt(),
@@ -75,8 +85,8 @@ public class DiaryService {
 
        return new DiaryResponse(
                diary.getId(),
-               diary.getMember().getId(),
-               diary.getMember().getNickname(),
+               diary.getDog().getMember().getId(),
+               diary.getDog().getMember().getNickname(),
                diary.isPublic(),
                diary.isCommentAllowed(),
                diary.getCreatedAt(),
@@ -115,7 +125,7 @@ public class DiaryService {
     }
 
     private void validateDiaryOwner(Diary diary, String loginEmail) {
-        if (!diary.getMember().getEmail().equals(loginEmail)) {
+        if (!diary.getDog().getMember().getEmail().equals(loginEmail)) {
             throw new IllegalArgumentException("본인의 일기만 접근할 수 있습니다.");
         }
     }

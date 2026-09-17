@@ -25,8 +25,8 @@ public class Diary {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id")
-    private Member member;
+    @JoinColumn(name = "dog_id")
+    private Dog dog;
 
     @CreatedDate
     @Column(updatable = false)
@@ -51,14 +51,14 @@ public class Diary {
     private String weather;
 
     public static Diary createDiary(
-            Member member,
+            Dog dog,
             LocalDate diaryDate,
             LocalTime diaryTime,
             String weather,
             boolean isPublic,
             boolean isCommentAllowed) {
         Diary diary = new Diary();
-        diary.member = member;
+        diary.dog = dog;
         diary.diaryDate = diaryDate;
         diary.diaryTime = diaryTime;
         diary.weather = weather;

@@ -7,6 +7,7 @@ import java.time.LocalTime;
 import java.util.List;
 
 public record DiaryRequest(
+        Long dogId,
         LocalDate date,
         LocalTime time,
         String weather,
