@@ -311,4 +311,40 @@ class DiaryServiceTest {
         assertThat(updatedDiary.getDiaryTime()).isEqualTo(updateRequest.time());
         assertThat(updatedDiary.getWeather()).isEqualTo(updateRequest.weather());
     }
+
+    @Test
+    @DisplayName("일기 상세 조회 시 날짜, 시간, 날씨 정보를 포함한다")
+    void getDiary_includesDateTimeAndWeather() {
+        // Given
+        Member testMember = Member.builder()
+                .email("testMember@munglog.com")
+                .password("1234")
+                .nickname("토토 주인")
+                .build();
+        memberRepository.save(testMember);
+
+        Dog testDog = Dog.builder()
+                .member(testMember)
+                .name("토토")
+                .build();
+        dogRepository.save(testDog);
+
+        Diary testDiary = Diary.createDiary(
+                testDog,
+                LocalDate.of(2026, 1, 1),
+                LocalTime.of(11, 11, 11),
+                "CLOUDY",
+                true,
+                true
+        );
+        Long savedDiaryId = diaryRepository.save(testDiary).getId();
+
+        // When
+        DiaryResponse response = diaryService.getDiary(savedDiaryId);
+
+        // Then
+        assertThat(response.diaryDate()).isEqualTo(testDiary.getDiaryDate());
+        assertThat(response.diaryTime()).isEqualTo(testDiary.getDiaryTime());
+        assertThat(response.weather()).isEqualTo(testDiary.getWeather());
+    }
 }
