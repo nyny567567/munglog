@@ -126,7 +126,7 @@ public class DiaryService {
 
     private void validateDiaryOwner(Diary diary, String loginEmail) {
         if (!diary.getDog().getMember().getEmail().equals(loginEmail)) {
-            throw new IllegalArgumentException("본인의 일기만 접근할 수 있습니다.");
+            throw new IllegalStateException("본인의 강아지에 작성된 일기만 접근할 수 있습니다.");
         }
     }
 

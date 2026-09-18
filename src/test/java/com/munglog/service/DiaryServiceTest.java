@@ -170,4 +170,99 @@ class DiaryServiceTest {
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("해당 강아지의 일기를 작성할 수 없습니다");
     }
+
+    @Test
+    @DisplayName("다른 회원의 강아지의 일기를 삭제할 수 없다")
+    void deleteDiary_fails_forOtherMembersDog() {
+        // Given
+        Member loginMember = Member.builder()
+                .email("loginMember@munglog.com")
+                .password("1234")
+                .nickname("로그인 사용자")
+                .build();
+        memberRepository.save(loginMember);
+
+        Member dogOwner = Member.builder()
+                .email("ownerMember@munglog.com")
+                .password("1234")
+                .nickname("강아지 주인")
+                .build();
+        memberRepository.save(dogOwner);
+
+        Dog testDog = Dog.builder()
+                .member(dogOwner)
+                .name("토토")
+                .build();
+        dogRepository.save(testDog);
+
+        Diary testDiary = Diary.createDiary(
+                testDog,
+                LocalDate.now(),
+                LocalTime.now(),
+                "rainy",
+                true,
+                true
+        );
+        Long savedDiaryId = diaryRepository.save(testDiary).getId();
+
+        // When & Then
+        assertThatThrownBy(() ->
+                diaryService.deleteDiary(savedDiaryId,  loginMember.getEmail()))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("본인의 강아지에 작성된 일기만 접근할 수 있습니다.");
+    }
+
+    @Test
+    @DisplayName("다른 회원의 강아지의 일기를 수정할 수 없다")
+    void updateDiaryEntirely_fails_forOtherMembersDog() {
+        // Given
+        Member loginMember = Member.builder()
+                .email("loginMember@munglog.com")
+                .password("1234")
+                .nickname("로그인 유저")
+                .build();
+        memberRepository.save(loginMember);
+
+        Member dogOwner = Member.builder()
+                .email("dogOwner@munglog.com")
+                .password("1234")
+                .nickname("강아지 주인")
+                .build();
+        memberRepository.save(dogOwner);
+
+        Dog testDog = Dog.builder()
+                .member(dogOwner)
+                .name("토토")
+                .build();
+        dogRepository.save(testDog);
+
+        Diary testDiary = Diary.createDiary(
+                testDog,
+                LocalDate.now(),
+                LocalTime.now(),
+                "SUNNY",
+                true,
+                true
+        );
+        Long savedDiaryId = diaryRepository.save(testDiary).getId();
+
+        DiaryRequest request = new DiaryRequest(
+                testDog.getId(),
+                LocalDate.now(),
+                LocalTime.now(),
+                "SUNNY",
+                true,
+                true,
+                List.of()
+        );
+
+        assertThatThrownBy(() ->
+                diaryService.updateDiaryEntirely(savedDiaryId, request, loginMember.getEmail()))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("본인의 강아지에 작성된 일기만 접근할 수 있습니다.");
+    }
+
+
+
+
 }
