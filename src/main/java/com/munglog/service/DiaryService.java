@@ -36,7 +36,7 @@ public class DiaryService {
         Dog dog = dogRepository.findById(request.dogId())
                 .orElseThrow(() -> new IllegalArgumentException("해당 강아지를 찾을 수 없습니다."));
 
-        if(!dog.getMember().getId().equals(member.getId())) {
+        if (!dog.getMember().getId().equals(member.getId())) {
             throw new IllegalStateException("해당 강아지의 일기를 작성할 수 없습니다");
         }
 
@@ -77,21 +77,21 @@ public class DiaryService {
     }
 
     public DiaryResponse getDiary(Long id) {
-       Diary diary =  diaryRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("해당 일기를 찾을 수 없습니다."));
+        Diary diary = diaryRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("해당 일기를 찾을 수 없습니다."));
 
-       List<DiaryResponse.DiaryPageResponse> pageResponses = diary.getPages().stream()
-               .sorted(Comparator.comparingInt(DiaryPage::getPageOrder))
-               .map(p -> new DiaryResponse.DiaryPageResponse(p.getId(), p.getMediaUrl(), p.getContent(), p.getPageOrder())).toList();
+        List<DiaryResponse.DiaryPageResponse> pageResponses = diary.getPages().stream()
+                .sorted(Comparator.comparingInt(DiaryPage::getPageOrder))
+                .map(p -> new DiaryResponse.DiaryPageResponse(p.getId(), p.getMediaUrl(), p.getContent(), p.getPageOrder())).toList();
 
-       return new DiaryResponse(
-               diary.getId(),
-               diary.getDog().getMember().getId(),
-               diary.getDog().getMember().getNickname(),
-               diary.isPublic(),
-               diary.isCommentAllowed(),
-               diary.getCreatedAt(),
-               pageResponses
-       );
+        return new DiaryResponse(
+                diary.getId(),
+                diary.getDog().getMember().getId(),
+                diary.getDog().getMember().getNickname(),
+                diary.isPublic(),
+                diary.isCommentAllowed(),
+                diary.getCreatedAt(),
+                pageResponses
+        );
     }
 
     @Transactional
@@ -110,7 +110,13 @@ public class DiaryService {
 
         validateDiaryOwner(diary, loginEmail);
 
-        diary.update(request.isPublic(), request.isCommentAllowed());
+        diary.update(
+                request.date(),
+                request.time(),
+                request.weather(),
+                request.isPublic(),
+                request.isCommentAllowed()
+        );
 
         diary.getPages().clear();
 

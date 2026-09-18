@@ -262,7 +262,53 @@ class DiaryServiceTest {
                 .hasMessage("본인의 강아지에 작성된 일기만 접근할 수 있습니다.");
     }
 
+    @Test
+    @DisplayName("일기 전체 수정 시 날짜, 시간, 날씨도 변경된다")
+    void updateDiaryEntirely_changesDateTimeAndWeather() {
+        // Given
+        Member dogOwner = Member.builder()
+                .email("dogOwner@munglog.com")
+                .password("1234")
+                .nickname("토토주인")
+                .build();
+        memberRepository.save(dogOwner);
 
+        Dog testDog = Dog.builder()
+                .member(dogOwner)
+                .name("토토")
+                .build();
+        dogRepository.save(testDog);
 
+        Diary testDiary = Diary.createDiary(
+                testDog,
+                LocalDate.now(),
+                LocalTime.now(),
+                "SUNNY",
+                true,
+                true
+        );
 
+        diaryRepository.save(testDiary).getId();
+
+        DiaryRequest updateRequest = new DiaryRequest(
+                testDog.getId(),
+                LocalDate.of(2026, 1, 1),
+                LocalTime.of(0, 0, 0),
+                "CLOUDY",
+                true,
+                true,
+                List.of()
+        );
+
+        // When
+        diaryService.updateDiaryEntirely(testDiary.getId(), updateRequest, dogOwner.getEmail());
+
+        // Then
+        Diary updatedDiary = diaryRepository.findById(testDiary.getId())
+                .orElseThrow();
+
+        assertThat(updatedDiary.getDiaryDate()).isEqualTo(updateRequest.date());
+        assertThat(updatedDiary.getDiaryTime()).isEqualTo(updateRequest.time());
+        assertThat(updatedDiary.getWeather()).isEqualTo(updateRequest.weather());
+    }
 }

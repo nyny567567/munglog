@@ -73,7 +73,15 @@ public class Diary {
         page.assignDiary(this);
     }
 
-    public void update(boolean isPublic, boolean isCommentAllowed) {
+    public void update(
+            LocalDate diaryDate,
+            LocalTime diaryTime,
+            String weather,
+            boolean isPublic,
+            boolean isCommentAllowed) {
+        this.diaryDate = diaryDate;
+        this.diaryTime = diaryTime;
+        this.weather = weather;
         this.isPublic = isPublic;
         this.isCommentAllowed = isCommentAllowed;
     }
