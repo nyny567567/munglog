@@ -10,7 +10,6 @@ import com.munglog.repository.DiaryRepository;
 
 import com.munglog.repository.MemberRepository;
 import jakarta.transaction.Transactional;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -346,5 +345,57 @@ class DiaryServiceTest {
         assertThat(response.diaryDate()).isEqualTo(testDiary.getDiaryDate());
         assertThat(response.diaryTime()).isEqualTo(testDiary.getDiaryTime());
         assertThat(response.weather()).isEqualTo(testDiary.getWeather());
+    }
+
+    @Test
+    @DisplayName("강아지 별 일기 목록 조회 시 선택한 강아지의 일기만 반환한다")
+    void getDiaries_returnsOnlySelectedDogsDiariesByDogId() {
+        // Given
+        Member testMember = Member.builder()
+                .email("testMember@munglog.com")
+                .password("1234")
+                .nickname("토토주인")
+                .build();
+        memberRepository.save(testMember);
+
+        Dog testDog = Dog.builder()
+                .member(testMember)
+                .name("토토")
+                .build();
+        dogRepository.save(testDog);
+
+        Dog otherDog = Dog.builder()
+                .member(testMember)
+                .name("토미")
+                .build();
+        dogRepository.save(otherDog);
+
+        Diary testDiary = Diary.createDiary(
+                testDog,
+                LocalDate.of(2026, 1, 1),
+                LocalTime.of(12, 12, 12),
+                "SUNNY",
+                true,
+                true
+        );
+        diaryRepository.save(testDiary);
+
+        Diary otherDiary = Diary.createDiary(
+                otherDog,
+                LocalDate.of(2026, 2, 2),
+                LocalTime.of(13, 13, 13),
+                "CLOUDY",
+                true,
+                false
+        );
+        diaryRepository.save(otherDiary);
+
+        // When
+        List<DiaryResponse> responses = diaryService.getDiariesByDogId(testDog.getId());
+
+        // Then
+        assertThat(responses)
+                .extracting(DiaryResponse::diaryId)
+                .containsExactly(testDiary.getId());
     }
 }

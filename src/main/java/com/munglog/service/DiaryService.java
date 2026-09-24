@@ -58,8 +58,8 @@ public class DiaryService {
         return diaryRepository.save(diary).getId();
     }
 
-    public List<DiaryResponse> getAllDiaries() {
-        return diaryRepository.findAll().stream()
+    public List<DiaryResponse> getDiariesByDogId(Long dogId) {
+        return diaryRepository.findByDogId(dogId).stream()
                 .map(diary -> {
                     List<DiaryResponse.DiaryPageResponse> pageResponses = diary.getPages().stream()
                             .map(p -> new DiaryResponse.DiaryPageResponse(p.getId(), p.getMediaUrl(), p.getContent(), p.getPageOrder()))
