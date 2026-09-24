@@ -206,7 +206,7 @@ class DiaryServiceTest {
 
         // When & Then
         assertThatThrownBy(() ->
-                diaryService.deleteDiary(savedDiaryId,  loginMember.getEmail()))
+                diaryService.deleteDiary(savedDiaryId, loginMember.getEmail()))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("본인의 강아지에 작성된 일기만 접근할 수 있습니다.");
     }
@@ -397,5 +397,64 @@ class DiaryServiceTest {
         assertThat(responses)
                 .extracting(DiaryResponse::diaryId)
                 .containsExactly(testDiary.getId());
+    }
+
+    @Test
+    @DisplayName("강아지별 일기 목록 조회 시 날짜와 시간의 최신순으로 반환한다")
+    void getDiariesByDogId_returnsDiariesOrderByDateAndTimeDesc() {
+
+        // Given
+        Member testMember = Member.builder()
+                .email("testMember@munglog.com")
+                .password("1234")
+                .nickname("토토맘")
+                .build();
+        memberRepository.save(testMember);
+
+        Dog testDog = Dog.builder()
+                .member(testMember)
+                .name("토토")
+                .build();
+        dogRepository.save(testDog);
+
+        Diary testDiaryOnSep24At3 = Diary.createDiary(
+                testDog,
+                LocalDate.of(2026, 9, 24),
+                LocalTime.of(3, 0),
+                "SUNNY",
+                true,
+                true
+        );
+
+        Diary testDiaryOnSep24At4 = Diary.createDiary(
+                testDog,
+                LocalDate.of(2026, 9, 24),
+                LocalTime.of(4, 0),
+                "CLOUDY",
+                true,
+                true
+        );
+
+        Diary testDiaryOnSep25At3 = Diary.createDiary(
+                testDog,
+                LocalDate.of(2026, 9, 25),
+                LocalTime.of(3, 0),
+                "SUNNY",
+                true,
+                true
+
+        );
+        diaryRepository.saveAll(List.of(testDiaryOnSep24At3, testDiaryOnSep24At4, testDiaryOnSep25At3));
+
+        // When
+        List<DiaryResponse> responses = diaryService.getDiariesByDogId(testDog.getId());
+
+        // Then
+        assertThat(responses)
+                .extracting(DiaryResponse::diaryId)
+                .containsExactly(
+                        testDiaryOnSep25At3.getId(),
+                        testDiaryOnSep24At4.getId(),
+                        testDiaryOnSep24At3.getId());
     }
 }

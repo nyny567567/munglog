@@ -11,6 +11,7 @@ import com.munglog.repository.DiaryRepository;
 import com.munglog.repository.DogRepository;
 import com.munglog.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,7 +60,11 @@ public class DiaryService {
     }
 
     public List<DiaryResponse> getDiariesByDogId(Long dogId) {
-        return diaryRepository.findByDogId(dogId).stream()
+        return diaryRepository.findByDogId(
+                        dogId,
+                        Sort.by(Sort.Direction.DESC, "diaryDate", "diaryTime")
+                )
+                .stream()
                 .map(diary -> {
                     List<DiaryResponse.DiaryPageResponse> pageResponses = diary.getPages().stream()
                             .map(p -> new DiaryResponse.DiaryPageResponse(p.getId(), p.getMediaUrl(), p.getContent(), p.getPageOrder()))
