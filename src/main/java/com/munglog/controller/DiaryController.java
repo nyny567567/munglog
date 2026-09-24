@@ -2,8 +2,6 @@ package com.munglog.controller;
 
 import com.munglog.dto.DiaryRequest;
 import com.munglog.dto.DiaryResponse;
-import com.munglog.dto.DiaryUpdateRequest;
-import com.munglog.entity.Diary;
 import com.munglog.service.DiaryService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -34,10 +32,10 @@ public class DiaryController {
         return ResponseEntity.ok(savedDiaryId);
     }
 
-    //전체 조회 API
+    //강아지별 일기 목록 조회 API
     @GetMapping
-    public ResponseEntity<List<DiaryResponse>> getAllDiaries() {
-        List<DiaryResponse> responses = diaryService.getAllDiaries();
+    public ResponseEntity<List<DiaryResponse>> getDiariesByDogId(@RequestParam Long dogId) {
+        List<DiaryResponse> responses = diaryService.getDiariesByDogId(dogId);
         return ResponseEntity.ok(responses);
     }
 
