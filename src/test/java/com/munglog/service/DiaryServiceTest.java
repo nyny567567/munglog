@@ -391,7 +391,7 @@ class DiaryServiceTest {
         diaryRepository.save(otherDiary);
 
         // When
-        List<DiaryResponse> responses = diaryService.getDiariesByDogId(testDog.getId());
+        List<DiaryResponse> responses = diaryService.getDiariesByDogId(testDog.getId(), 0, 1);
 
         // Then
         assertThat(responses)
@@ -400,8 +400,78 @@ class DiaryServiceTest {
     }
 
     @Test
-    @DisplayName("강아지별 일기 목록 조회 시 날짜와 시간의 최신순으로 반환한다")
-    void getDiariesByDogId_returnsDiariesOrderByDateAndTimeDesc() {
+    @DisplayName("강아지별 일기 목록 조회 시 최신순으로 반환한다")
+    void getDiariesByDogId_returnsDiariesInLatestOrder() {
+
+        // Given
+        Member testMember = Member.builder()
+                .email("testMember@munglog.com")
+                .password("1234")
+                .nickname("토토맘")
+                .build();
+        memberRepository.save(testMember);
+
+        Dog testDog = Dog.builder()
+                .member(testMember)
+                .name("토토")
+                .build();
+        dogRepository.save(testDog);
+
+        Diary testDiaryOnSep24At3 = Diary.createDiary(
+                testDog,
+                LocalDate.of(2026, 9, 24),
+                LocalTime.of(3, 0),
+                "SUNNY",
+                true,
+                true
+        );
+
+        Diary testDiaryOnSep24At4 = Diary.createDiary(
+                testDog,
+                LocalDate.of(2026, 9, 24),
+                LocalTime.of(4, 0),
+                "CLOUDY",
+                true,
+                true
+        );
+
+        Diary testDiaryOnSep25At3 = Diary.createDiary(
+                testDog,
+                LocalDate.of(2026, 9, 25),
+                LocalTime.of(3, 0),
+                "SUNNY",
+                true,
+                true
+
+        );
+
+        Diary testDiaryOnSep24At3Later = Diary.createDiary(
+                testDog,
+                LocalDate.of(2026, 9, 24),
+                LocalTime.of(3, 0),
+                "SNOWY",
+                true,
+                true
+        );
+
+        diaryRepository.saveAll(List.of(testDiaryOnSep24At3, testDiaryOnSep24At4, testDiaryOnSep25At3, testDiaryOnSep24At3Later));
+
+        // When
+        List<DiaryResponse> responses = diaryService.getDiariesByDogId(testDog.getId(), 0, 4);
+
+        // Then
+        assertThat(responses)
+                .extracting(DiaryResponse::diaryId)
+                .containsExactly(
+                        testDiaryOnSep25At3.getId(),
+                        testDiaryOnSep24At4.getId(),
+                        testDiaryOnSep24At3Later.getId(),
+                        testDiaryOnSep24At3.getId());
+    }
+
+    @Test
+    @DisplayName("강아지별 일기 목록 조회 시 요청한 페이지 크기만큼 반환한다")
+    void getDiariesByDogId_returnsRequestedPageSize() {
 
         // Given
         Member testMember = Member.builder()
@@ -447,14 +517,71 @@ class DiaryServiceTest {
         diaryRepository.saveAll(List.of(testDiaryOnSep24At3, testDiaryOnSep24At4, testDiaryOnSep25At3));
 
         // When
-        List<DiaryResponse> responses = diaryService.getDiariesByDogId(testDog.getId());
+        List<DiaryResponse> responses = diaryService.getDiariesByDogId(testDog.getId(), 0, 2);
 
         // Then
         assertThat(responses)
                 .extracting(DiaryResponse::diaryId)
                 .containsExactly(
                         testDiaryOnSep25At3.getId(),
-                        testDiaryOnSep24At4.getId(),
-                        testDiaryOnSep24At3.getId());
+                        testDiaryOnSep24At4.getId()
+                );
+    }
+
+    @Test
+    @DisplayName("강아지별 일기 목록 조회 시 요청한 페이지의 일기를 반환한다")
+    void getDiariesByDogId_returnsRequestedPage() {
+        // Given
+        Member testMember = Member.builder()
+                .email("testMember@munglog.com")
+                .password("1234")
+                .nickname("토토맘")
+                .build();
+        memberRepository.save(testMember);
+
+        Dog testDog = Dog.builder()
+                .member(testMember)
+                .name("토토")
+                .build();
+        dogRepository.save(testDog);
+
+        Diary testDiaryOnSep24At3 = Diary.createDiary(
+                testDog,
+                LocalDate.of(2026, 9, 24),
+                LocalTime.of(3, 0),
+                "SUNNY",
+                true,
+                true
+        );
+
+        Diary testDiaryOnSep24At4 = Diary.createDiary(
+                testDog,
+                LocalDate.of(2026, 9, 24),
+                LocalTime.of(4, 0),
+                "CLOUDY",
+                true,
+                true
+        );
+
+        Diary testDiaryOnSep25At3 = Diary.createDiary(
+                testDog,
+                LocalDate.of(2026, 9, 25),
+                LocalTime.of(3, 0),
+                "SUNNY",
+                true,
+                true
+
+        );
+        diaryRepository.saveAll(List.of(testDiaryOnSep24At3, testDiaryOnSep24At4, testDiaryOnSep25At3));
+
+        // When
+        List<DiaryResponse> responses = diaryService.getDiariesByDogId(testDog.getId(), 1, 2);
+
+        // Then
+        assertThat(responses)
+                .extracting(DiaryResponse::diaryId)
+                .containsExactly(
+                        testDiaryOnSep24At3.getId()
+                );
     }
 }

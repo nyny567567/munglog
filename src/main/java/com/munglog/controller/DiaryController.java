@@ -34,8 +34,13 @@ public class DiaryController {
 
     //강아지별 일기 목록 조회 API
     @GetMapping
-    public ResponseEntity<List<DiaryResponse>> getDiariesByDogId(@RequestParam Long dogId) {
-        List<DiaryResponse> responses = diaryService.getDiariesByDogId(dogId);
+    public ResponseEntity<List<DiaryResponse>> getDiariesByDogId(
+            @RequestParam Long dogId,
+            @RequestParam int page,
+            @RequestParam int size
+    ) {
+        List<DiaryResponse> responses =
+                diaryService.getDiariesByDogId(dogId, page, size);
         return ResponseEntity.ok(responses);
     }
 
