@@ -4,6 +4,8 @@ import com.munglog.dto.DiaryRequest;
 import com.munglog.dto.DiaryResponse;
 import com.munglog.service.DiaryService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -37,8 +39,13 @@ public class DiaryController {
     @GetMapping
     public ResponseEntity<Page<DiaryResponse>> getDiariesByDogId(
             @RequestParam Long dogId,
-            @RequestParam int page,
-            @RequestParam int size
+            @RequestParam(defaultValue = "0")
+            @Min(0)
+            int page,
+            @RequestParam(defaultValue = "10")
+            @Min(1)
+            @Max(50)
+            int size
     ) {
         Page<DiaryResponse> responses =
                 diaryService.getDiariesByDogId(dogId, page, size);
