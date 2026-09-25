@@ -11,6 +11,8 @@ import com.munglog.repository.DiaryRepository;
 import com.munglog.repository.DogRepository;
 import com.munglog.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -59,10 +61,16 @@ public class DiaryService {
         return diaryRepository.save(diary).getId();
     }
 
-    public List<DiaryResponse> getDiariesByDogId(Long dogId) {
+    public List<DiaryResponse> getDiariesByDogId(Long dogId, int page, int size) {
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by(Sort.Direction.DESC, "diaryDate", "diaryTime", "id")
+        );
+
         return diaryRepository.findByDogId(
                         dogId,
-                        Sort.by(Sort.Direction.DESC, "diaryDate", "diaryTime")
+                        pageable
                 )
                 .stream()
                 .map(diary -> {
