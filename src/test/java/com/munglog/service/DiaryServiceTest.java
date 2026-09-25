@@ -14,6 +14,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -391,10 +392,10 @@ class DiaryServiceTest {
         diaryRepository.save(otherDiary);
 
         // When
-        List<DiaryResponse> responses = diaryService.getDiariesByDogId(testDog.getId(), 0, 1);
+        Page<DiaryResponse> responses = diaryService.getDiariesByDogId(testDog.getId(), 0, 1);
 
         // Then
-        assertThat(responses)
+        assertThat(responses.getContent())
                 .extracting(DiaryResponse::diaryId)
                 .containsExactly(testDiary.getId());
     }
@@ -457,10 +458,10 @@ class DiaryServiceTest {
         diaryRepository.saveAll(List.of(testDiaryOnSep24At3, testDiaryOnSep24At4, testDiaryOnSep25At3, testDiaryOnSep24At3Later));
 
         // When
-        List<DiaryResponse> responses = diaryService.getDiariesByDogId(testDog.getId(), 0, 4);
+        Page<DiaryResponse> responses = diaryService.getDiariesByDogId(testDog.getId(), 0, 4);
 
         // Then
-        assertThat(responses)
+        assertThat(responses.getContent())
                 .extracting(DiaryResponse::diaryId)
                 .containsExactly(
                         testDiaryOnSep25At3.getId(),
@@ -517,15 +518,18 @@ class DiaryServiceTest {
         diaryRepository.saveAll(List.of(testDiaryOnSep24At3, testDiaryOnSep24At4, testDiaryOnSep25At3));
 
         // When
-        List<DiaryResponse> responses = diaryService.getDiariesByDogId(testDog.getId(), 0, 2);
+        Page<DiaryResponse> responses = diaryService.getDiariesByDogId(testDog.getId(), 0, 2);
 
         // Then
-        assertThat(responses)
+        assertThat(responses.getContent())
                 .extracting(DiaryResponse::diaryId)
                 .containsExactly(
                         testDiaryOnSep25At3.getId(),
                         testDiaryOnSep24At4.getId()
                 );
+
+        assertThat(responses.getTotalElements()).isEqualTo(3);
+        assertThat(responses.getTotalPages()).isEqualTo(2);
     }
 
     @Test
@@ -575,10 +579,10 @@ class DiaryServiceTest {
         diaryRepository.saveAll(List.of(testDiaryOnSep24At3, testDiaryOnSep24At4, testDiaryOnSep25At3));
 
         // When
-        List<DiaryResponse> responses = diaryService.getDiariesByDogId(testDog.getId(), 1, 2);
+        Page<DiaryResponse> responses = diaryService.getDiariesByDogId(testDog.getId(), 1, 2);
 
         // Then
-        assertThat(responses)
+        assertThat(responses.getContent())
                 .extracting(DiaryResponse::diaryId)
                 .containsExactly(
                         testDiaryOnSep24At3.getId()

@@ -5,6 +5,7 @@ import com.munglog.dto.DiaryResponse;
 import com.munglog.service.DiaryService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -34,12 +35,12 @@ public class DiaryController {
 
     //강아지별 일기 목록 조회 API
     @GetMapping
-    public ResponseEntity<List<DiaryResponse>> getDiariesByDogId(
+    public ResponseEntity<Page<DiaryResponse>> getDiariesByDogId(
             @RequestParam Long dogId,
             @RequestParam int page,
             @RequestParam int size
     ) {
-        List<DiaryResponse> responses =
+        Page<DiaryResponse> responses =
                 diaryService.getDiariesByDogId(dogId, page, size);
         return ResponseEntity.ok(responses);
     }
