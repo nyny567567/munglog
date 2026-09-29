@@ -40,19 +40,31 @@ class DiaryServiceTest {
     @Autowired
     DogRepository dogRepository;
 
+    private Member createMember(String email, String nickname) {
+        return createMember(email, nickname, "SAMSONG");
+    }
+
+    private Member createMember(String email, String nickname, String regionCode) {
+        Member testMember = Member.builder()
+                .email(email)
+                .password("1234")
+                .nickname(nickname)
+                .regionCode(regionCode)
+                .build();
+        return memberRepository.save(testMember);
+    }
+
     @Test
     @DisplayName("로그인한 회원이 소유한 강아지를 지정해 일기를 만들면 해당 강아지의 일기가 된다")
     void createDiary_assignsOwnedDog() {
         // Given
-        Member owner = memberRepository.save(Member.builder()
-                .email("owner@munglog.com")
-                .password("1234")
-                .nickname("보호자")
-                .build());
+        Member owner = createMember("owner@munglog.com", "보호자");
+
         Dog dog = dogRepository.save(Dog.builder()
                 .member(owner)
                 .name("멍이")
                 .build());
+
         DiaryRequest.DiaryPageRequest pageRequest = new DiaryRequest.DiaryPageRequest(
                 "http://example.com/image.jpg",
                 "산책한 날",
@@ -80,12 +92,7 @@ class DiaryServiceTest {
     @DisplayName("사용자 입력(날짜, 시간, 날씨)을 포함한 일기가 정상적으로 생성")
     void createDiary_success_test() {
         // Given
-        Member testMember = Member.builder()
-                .email("test@munglong.com")
-                .password("1234")
-                .nickname("테스터1")
-                .build();
-        memberRepository.save(testMember);
+        Member testMember = createMember("test@munglog.com", "테스터1");
 
         DiaryRequest.DiaryPageRequest pageRequest = new DiaryRequest.DiaryPageRequest(
                 "http://example.com/image.jpg",
@@ -110,7 +117,7 @@ class DiaryServiceTest {
         );
 
         // When
-        Long savedDiaryId = diaryService.createDiary(request, "test@munglong.com");
+        Long savedDiaryId = diaryService.createDiary(request, "test@munglog.com");
 
         // Then
         Diary savedDiary = diaryRepository.findById(savedDiaryId).orElseThrow();
@@ -128,19 +135,9 @@ class DiaryServiceTest {
     @DisplayName("다른 회원의 강아지에는 일기를 작성할 수 없다")
     void createDiary_fails_forOtherMembersDog() {
         //Given
-        Member loginMember = Member.builder()
-                .email("test@munglong.com")
-                .password("1234")
-                .nickname("테스터1")
-                .build();
-        memberRepository.save(loginMember);
+        Member loginMember = createMember("test@munglog.com", "테스터1");
 
-        Member dogOwner = Member.builder()
-                .email("test1@munglong.com")
-                .password("1234")
-                .nickname("테스터2")
-                .build();
-        memberRepository.save(dogOwner);
+        Member dogOwner = createMember("test1@munglog.com", "테스터2");
 
         Dog testDog = Dog.builder()
                 .member(dogOwner)
@@ -175,19 +172,8 @@ class DiaryServiceTest {
     @DisplayName("다른 회원의 강아지의 일기를 삭제할 수 없다")
     void deleteDiary_fails_forOtherMembersDog() {
         // Given
-        Member loginMember = Member.builder()
-                .email("loginMember@munglog.com")
-                .password("1234")
-                .nickname("로그인 사용자")
-                .build();
-        memberRepository.save(loginMember);
-
-        Member dogOwner = Member.builder()
-                .email("ownerMember@munglog.com")
-                .password("1234")
-                .nickname("강아지 주인")
-                .build();
-        memberRepository.save(dogOwner);
+        Member loginMember = createMember("loginMember@munglog.com", "로그인 사용자");
+        Member dogOwner = createMember("ownerMember@munglog.com", "강아지 주인");
 
         Dog testDog = Dog.builder()
                 .member(dogOwner)
@@ -216,19 +202,9 @@ class DiaryServiceTest {
     @DisplayName("다른 회원의 강아지의 일기를 수정할 수 없다")
     void updateDiaryEntirely_fails_forOtherMembersDog() {
         // Given
-        Member loginMember = Member.builder()
-                .email("loginMember@munglog.com")
-                .password("1234")
-                .nickname("로그인 유저")
-                .build();
-        memberRepository.save(loginMember);
+        Member loginMember = createMember("loginMember@munglog.com", "로그인 유저");
 
-        Member dogOwner = Member.builder()
-                .email("dogOwner@munglog.com")
-                .password("1234")
-                .nickname("강아지 주인")
-                .build();
-        memberRepository.save(dogOwner);
+        Member dogOwner = createMember("dogOwner@munglog.com", "강아지 주인");
 
         Dog testDog = Dog.builder()
                 .member(dogOwner)
@@ -266,12 +242,7 @@ class DiaryServiceTest {
     @DisplayName("일기 전체 수정 시 날짜, 시간, 날씨도 변경된다")
     void updateDiaryEntirely_changesDateTimeAndWeather() {
         // Given
-        Member dogOwner = Member.builder()
-                .email("dogOwner@munglog.com")
-                .password("1234")
-                .nickname("토토주인")
-                .build();
-        memberRepository.save(dogOwner);
+        Member dogOwner = createMember("dogOwner@munglog.com", "토토주인");
 
         Dog testDog = Dog.builder()
                 .member(dogOwner)
@@ -316,13 +287,7 @@ class DiaryServiceTest {
     @DisplayName("일기 상세 조회 시 날짜, 시간, 날씨 정보를 포함한다")
     void getDiary_includesDateTimeAndWeather() {
         // Given
-        Member testMember = Member.builder()
-                .email("testMember@munglog.com")
-                .password("1234")
-                .nickname("토토 주인")
-                .build();
-        memberRepository.save(testMember);
-
+        Member testMember = createMember("testMember@munglog.com", "토토 주인");
         Dog testDog = Dog.builder()
                 .member(testMember)
                 .name("토토")
@@ -352,12 +317,7 @@ class DiaryServiceTest {
     @DisplayName("강아지 별 일기 목록 조회 시 선택한 강아지의 일기만 반환한다")
     void getDiaries_returnsOnlySelectedDogsDiariesByDogId() {
         // Given
-        Member testMember = Member.builder()
-                .email("testMember@munglog.com")
-                .password("1234")
-                .nickname("토토주인")
-                .build();
-        memberRepository.save(testMember);
+        Member testMember = createMember("testMember@munglog.com", "토토주인");
 
         Dog testDog = Dog.builder()
                 .member(testMember)
@@ -405,13 +365,7 @@ class DiaryServiceTest {
     void getDiariesByDogId_returnsDiariesInLatestOrder() {
 
         // Given
-        Member testMember = Member.builder()
-                .email("testMember@munglog.com")
-                .password("1234")
-                .nickname("토토맘")
-                .build();
-        memberRepository.save(testMember);
-
+        Member testMember = createMember("testMember@munglog.com", "토토맘");
         Dog testDog = Dog.builder()
                 .member(testMember)
                 .name("토토")
@@ -475,12 +429,7 @@ class DiaryServiceTest {
     void getDiariesByDogId_returnsRequestedPageSize() {
 
         // Given
-        Member testMember = Member.builder()
-                .email("testMember@munglog.com")
-                .password("1234")
-                .nickname("토토맘")
-                .build();
-        memberRepository.save(testMember);
+        Member testMember = createMember("testMember@munglog.com", "토토맘");
 
         Dog testDog = Dog.builder()
                 .member(testMember)
@@ -536,12 +485,7 @@ class DiaryServiceTest {
     @DisplayName("강아지별 일기 목록 조회 시 요청한 페이지의 일기를 반환한다")
     void getDiariesByDogId_returnsRequestedPage() {
         // Given
-        Member testMember = Member.builder()
-                .email("testMember@munglog.com")
-                .password("1234")
-                .nickname("토토맘")
-                .build();
-        memberRepository.save(testMember);
+        Member testMember = createMember("testMember@munglog.com", "토토맘");
 
         Dog testDog = Dog.builder()
                 .member(testMember)

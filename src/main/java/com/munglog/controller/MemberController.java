@@ -5,6 +5,7 @@ import com.munglog.dto.SignupRequest;
 import com.munglog.service.MemberService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +19,7 @@ public class MemberController {
     private final MemberService memberService;
 
     @PostMapping("/signup")
-    public ResponseEntity<Void> signup(@RequestBody SignupRequest request) {
+    public ResponseEntity<Void> signup(@Valid @RequestBody SignupRequest request) {
         memberService.signup(request);
 
         return ResponseEntity.status(HttpStatus.CREATED).build();

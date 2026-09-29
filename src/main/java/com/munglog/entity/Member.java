@@ -24,10 +24,19 @@ public class Member {
     @Column(nullable = false)
     private String nickname;
 
+    @Column(nullable = false)
+    private String regionCode;
+
     @Builder
-    public Member(String email, String password, String nickname) {
+    public Member(
+            String email,
+            String password,
+            String nickname,
+            String regionCode
+    ) {
         this.email = email;
         this.password = password;
         this.nickname = nickname;
+        this.regionCode = regionCode;
     }
 }
