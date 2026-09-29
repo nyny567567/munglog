@@ -50,6 +50,9 @@ public class Diary {
     @Column(length = 50)
     private String weather;
 
+    @Column(nullable = false)
+    private String regionCode;
+
     public static Diary createDiary(
             Dog dog,
             LocalDate diaryDate,
@@ -59,6 +62,7 @@ public class Diary {
             boolean isCommentAllowed) {
         Diary diary = new Diary();
         diary.dog = dog;
+        diary.regionCode = dog.getMember().getRegionCode();
         diary.diaryDate = diaryDate;
         diary.diaryTime = diaryTime;
         diary.weather = weather;

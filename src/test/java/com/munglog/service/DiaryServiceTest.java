@@ -532,4 +532,40 @@ class DiaryServiceTest {
                         testDiaryOnSep24At3.getId()
                 );
     }
+
+    @Test
+    @DisplayName("일기 생성 시 회원의 현재 지역 코드를 저장한다")
+    void createDiary_copiesMemberRegionCode() {
+        // Given
+        Member testMember = createMember("testMember@munglog.com", "토토 누나", "GUPABAL");
+        
+        Dog testDog = Dog.builder()
+                .member(testMember)
+                .name("토토")
+                .build();
+        dogRepository.save(testDog);
+
+        DiaryRequest.DiaryPageRequest pageRequest = new DiaryRequest.DiaryPageRequest(
+                "http://example.com/image.jpg",
+                "토토 밥 많이 먹었다",
+                1
+        );
+        DiaryRequest request = new DiaryRequest(
+                testDog.getId(),
+                LocalDate.of(2026, 9, 28),
+                LocalTime.of(12, 34),
+                "sunny",
+                true,
+                true,
+                List.of(pageRequest)
+        );
+
+        // When
+        Long savedDiaryId = diaryService.createDiary(request, testMember.getEmail());
+
+        // Then
+        String diaryRegionCode = diaryRepository.findById(savedDiaryId).orElseThrow().getRegionCode();
+
+        assertThat(diaryRegionCode).isEqualTo(testMember.getRegionCode());
+    }
 }
