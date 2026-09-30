@@ -81,12 +81,12 @@ munglog는 이러한 기록을 한 곳에 모으고, 같은 지역의 보호자�
 
 ## 핵심 API 구조
 
-### Auth
+### Member
 | Method | URL | 설명 |
 |---|---|---|
-| POST | `/api/auth/signup` | 회원가입 |
-| POST | `/api/auth/login` | 로그인 |
-| POST | `/api/auth/logout` | 로그아웃 (구현 예정) |
+| POST | `/api/members/signup` | 회원가입 |
+| POST | `/api/members/login` | 로그인 |
+| POST | `/api/members/logout` | 로그아웃 (구현 예정) |
 
 ### Dog
 | Method | URL | 설명 |
