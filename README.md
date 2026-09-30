@@ -48,23 +48,24 @@ munglog는 이러한 기록을 한 곳에 모으고, 같은 지역의 보호자�
 - Spring Data JPA
 - Spring Security
 - JWT (JSON Web Token)
-- MySQL (또는 PostgreSQL)
-- AWS S3 (이미지 스토리지)
+- MySQL
 
 ### Frontend
-- React
-- Vite
-- React Router
-- Axios
+- React (개발 예정)
+- Vite (개발 예정)
+- React Router (개발 예정)
+- Axios (개발 예정)
+
+### Infrastructure
+- AWS S3 (이미지 기능 구현 시 적용 예정)
 
 ### Tools
 - IntelliJ IDEA
 - Git / GitHub
-- AI Assistant (보조 도구 및 더미 데이터 생성 활용)
 
 ## 주요 도메인
 
-- User (회원)
+- Member (회원)
 - Dog (반려견)
 - Diary (일기 및 피드)
 - DiaryImage (일기 첨부 이미지)
@@ -72,8 +73,8 @@ munglog는 이러한 기록을 한 곳에 모으고, 같은 지역의 보호자�
 
 ## ERD 구조
 
-- User `1:N` Dog
-- User `1:N` Comment
+- Member `1:N` Dog
+- Member `1:N` Comment
 - Dog `1:N` Diary
 - Diary `1:N` DiaryImage
 - Diary `1:N` Comment
@@ -85,7 +86,7 @@ munglog는 이러한 기록을 한 곳에 모으고, 같은 지역의 보호자�
 |---|---|---|
 | POST | `/api/auth/signup` | 회원가입 |
 | POST | `/api/auth/login` | 로그인 |
-| POST | `/api/auth/logout` | 로그아웃 |
+| POST | `/api/auth/logout` | 로그아웃 (구현 예정) |
 
 ### Dog
 | Method | URL | 설명 |
@@ -108,14 +109,14 @@ munglog는 이러한 기록을 한 곳에 모으고, 같은 지역의 보호자�
 ### Comment
 | Method | URL | 설명 |
 |---|---|---|
-| GET | `/api/diaries/{diaryId}/comments`| 일기 댓글 목록 조회 |
-| POST | `/api/diaries/{diaryId}/comments`| 댓글 작성 |
-| DELETE | `/api/comments/{commentId}` | 댓글 삭제 |
+| GET | `/api/diaries/{diaryId}/comments`| 일기 댓글 목록 조회 (구현 예정) |
+| POST | `/api/diaries/{diaryId}/comments`| 댓글 작성 (구현 예정) |
+| DELETE | `/api/comments/{commentId}` | 댓글 삭제 (구현 예정) |
 
 ### Image
 | Method | URL | 설명 |
 |---|---|---|
-| POST | `/api/images` | 이미지 파일 업로드 (URL 반환) |
+| POST | `/api/images` | 이미지 파일 업로드 (구현 예정) |
 
 ## 1차 개발 목표
 
@@ -133,7 +134,15 @@ munglog는 이러한 기록을 한 곳에 모으고, 같은 지역의 보호자�
 - [x] 기능정의서 작성
 - [x] ERD 설계
 - [x] API 명세 작성
-- [ ] Backend 개발
+- [ ] Backend 개발 진행 중
+  - [x] 회원가입 및 로그인
+  - [x] JWT 기반 인증
+  - [x] 반려견 등록 / 조회 / 수정 / 삭제
+  - [x] 반려견 및 일기 소유권 검증
+  - [x] 일기 등록 / 조회 / 수정 / 삭제
+  - [x] 반려견별 일기 목록 조회
+  - [x] 일기 목록 페이지네이션 및 최신순 정렬
+  - [x] 지역 기반 공개 일기 피드 조회
+  - [ ] 댓글
+  - [ ] 이미지 업로드
 - [ ] Frontend 개발
-- [ ] 화면 캡처 정리
-- [ ] 트러블슈팅 정리
