@@ -8,4 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface DiaryRepository extends JpaRepository<Diary, Long> {
 
     Page<Diary> findByDogId(Long dogId, Pageable pageable);
+
+    Page<Diary> findByRegionCodeAndIsPublicTrue(String regionCode, Pageable pageable);
 }

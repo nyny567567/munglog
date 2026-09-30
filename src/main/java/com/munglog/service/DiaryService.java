@@ -124,6 +124,20 @@ public class DiaryService {
         }
     }
 
+    public Page<DiaryResponse> getDiariesByRegionCode(String regionCode, int page, int size) {
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by(Sort.Direction.DESC, "diaryDate", "diaryTime", "id")
+        );
+
+        return diaryRepository.findByRegionCodeAndIsPublicTrue(
+                        regionCode,
+                        pageable
+                )
+                .map(this::diaryToResponse);
+    }
+
     private DiaryResponse diaryToResponse(Diary diary) {
         List<DiaryResponse.DiaryPageResponse> pageResponses = diary.getPages().stream()
                 .map(p -> new DiaryResponse.DiaryPageResponse(p.getId(), p.getMediaUrl(), p.getContent(), p.getPageOrder()))
