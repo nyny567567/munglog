@@ -73,44 +73,13 @@ public class DiaryService {
                         dogId,
                         pageable
                 )
-                .map(diary -> {
-                    List<DiaryResponse.DiaryPageResponse> pageResponses = diary.getPages().stream()
-                            .map(p -> new DiaryResponse.DiaryPageResponse(p.getId(), p.getMediaUrl(), p.getContent(), p.getPageOrder()))
-                            .toList();
-                    return new DiaryResponse(
-                            diary.getId(),
-                            diary.getDog().getMember().getId(),
-                            diary.getDog().getMember().getNickname(),
-                            diary.getDiaryDate(),
-                            diary.getDiaryTime(),
-                            diary.getWeather(),
-                            diary.isPublic(),
-                            diary.isCommentAllowed(),
-                            diary.getCreatedAt(),
-                            pageResponses
-                    );
-                });
+                .map(this::diaryToResponse);
     }
 
     public DiaryResponse getDiary(Long id) {
         Diary diary = diaryRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("해당 일기를 찾을 수 없습니다."));
 
-        List<DiaryResponse.DiaryPageResponse> pageResponses = diary.getPages().stream()
-                .sorted(Comparator.comparingInt(DiaryPage::getPageOrder))
-                .map(p -> new DiaryResponse.DiaryPageResponse(p.getId(), p.getMediaUrl(), p.getContent(), p.getPageOrder())).toList();
-
-        return new DiaryResponse(
-                diary.getId(),
-                diary.getDog().getMember().getId(),
-                diary.getDog().getMember().getNickname(),
-                diary.getDiaryDate(),
-                diary.getDiaryTime(),
-                diary.getWeather(),
-                diary.isPublic(),
-                diary.isCommentAllowed(),
-                diary.getCreatedAt(),
-                pageResponses
-        );
+        return diaryToResponse(diary);
     }
 
     @Transactional
@@ -154,5 +123,25 @@ public class DiaryService {
             throw new IllegalStateException("본인의 강아지에 작성된 일기만 접근할 수 있습니다.");
         }
     }
+
+    private DiaryResponse diaryToResponse(Diary diary) {
+        List<DiaryResponse.DiaryPageResponse> pageResponses = diary.getPages().stream()
+                .map(p -> new DiaryResponse.DiaryPageResponse(p.getId(), p.getMediaUrl(), p.getContent(), p.getPageOrder()))
+                .toList();
+
+        return new DiaryResponse(
+                diary.getId(),
+                diary.getDog().getMember().getId(),
+                diary.getDog().getMember().getNickname(),
+                diary.getDiaryDate(),
+                diary.getDiaryTime(),
+                diary.getWeather(),
+                diary.isPublic(),
+                diary.isCommentAllowed(),
+                diary.getCreatedAt(),
+                pageResponses
+        );
+    }
+
 
 }

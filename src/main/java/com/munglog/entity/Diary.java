@@ -33,6 +33,7 @@ public class Diary {
     private LocalDateTime createdAt;
 
     @OneToMany(mappedBy = "diary", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("pageOrder ASC")
     private List<DiaryPage> pages = new ArrayList<>();
 
     @Column(nullable = false)
