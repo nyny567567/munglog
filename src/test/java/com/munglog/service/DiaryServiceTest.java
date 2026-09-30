@@ -538,7 +538,7 @@ class DiaryServiceTest {
     void createDiary_copiesMemberRegionCode() {
         // Given
         Member testMember = createMember("testMember@munglog.com", "토토 누나", "GUPABAL");
-        
+
         Dog testDog = Dog.builder()
                 .member(testMember)
                 .name("토토")
@@ -567,5 +567,187 @@ class DiaryServiceTest {
         String diaryRegionCode = diaryRepository.findById(savedDiaryId).orElseThrow().getRegionCode();
 
         assertThat(diaryRegionCode).isEqualTo(testMember.getRegionCode());
+    }
+
+    @Test
+    @DisplayName("지역 피드 조회 시 해당 지역의 공개 일기만 반환한다")
+    void getDiariesByRegionCode_returnsOnlyPublicDiariesInRegion() {
+
+        // Given
+        Member testMemberInGupabal = createMember("totomom@munglog.com", "토토맘", "GUPABAL");
+        Member testMemberInSamsong = createMember("podomom@munglog.com", "포도맘", "SAMSONG");
+
+        Dog testDogToto = Dog.builder()
+                .member(testMemberInGupabal)
+                .name("토토")
+                .build();
+        dogRepository.save(testDogToto);
+
+        Dog testDogPodo = Dog.builder()
+                .member(testMemberInSamsong)
+                .name("포도")
+                .build();
+        dogRepository.save(testDogPodo);
+
+
+        Diary totoDiaryIsPublic = Diary.createDiary(
+                testDogToto,
+                LocalDate.of(2026, 9, 24),
+                LocalTime.of(3, 0),
+                "SUNNY",
+                true,
+                true
+        );
+
+        Diary totoDiaryIsNotPublic = Diary.createDiary(
+                testDogToto,
+                LocalDate.of(2026, 9, 24),
+                LocalTime.of(4, 0),
+                "CLOUDY",
+                false,
+                true
+        );
+
+        Diary podoDiaryIsPublic = Diary.createDiary(
+                testDogPodo,
+                LocalDate.of(2026, 9, 25),
+                LocalTime.of(3, 0),
+                "SUNNY",
+                true,
+                true
+
+        );
+
+        diaryRepository.saveAll(List.of(totoDiaryIsPublic, totoDiaryIsNotPublic, podoDiaryIsPublic));
+
+        // When
+        Page<DiaryResponse> responses = diaryService.getDiariesByRegionCode("GUPABAL", 0, 4);
+
+        // Then
+        assertThat(responses.getContent())
+                .extracting(DiaryResponse::diaryId)
+                .containsExactly(
+                        totoDiaryIsPublic.getId());
+    }
+
+    @Test
+    @DisplayName("지역 피드 조회 시 최신순으로 반환한다")
+    void getDiariesByRegionCode_returnsDiariesInLatestOrder() {
+
+        // Given
+        Member testMember = createMember("testMember@munglog.com", "토토맘");
+        Dog testDog = Dog.builder()
+                .member(testMember)
+                .name("토토")
+                .build();
+        dogRepository.save(testDog);
+
+        Diary testDiaryOnSep24At3 = Diary.createDiary(
+                testDog,
+                LocalDate.of(2026, 9, 24),
+                LocalTime.of(3, 0),
+                "SUNNY",
+                true,
+                true
+        );
+
+        Diary testDiaryOnSep24At4 = Diary.createDiary(
+                testDog,
+                LocalDate.of(2026, 9, 24),
+                LocalTime.of(4, 0),
+                "CLOUDY",
+                true,
+                true
+        );
+
+        Diary testDiaryOnSep25At3 = Diary.createDiary(
+                testDog,
+                LocalDate.of(2026, 9, 25),
+                LocalTime.of(3, 0),
+                "SUNNY",
+                true,
+                true
+
+        );
+
+        Diary testDiaryOnSep24At3Later = Diary.createDiary(
+                testDog,
+                LocalDate.of(2026, 9, 24),
+                LocalTime.of(3, 0),
+                "SNOWY",
+                true,
+                true
+        );
+
+        diaryRepository.saveAll(List.of(testDiaryOnSep24At3, testDiaryOnSep24At4, testDiaryOnSep25At3, testDiaryOnSep24At3Later));
+
+        // When
+        Page<DiaryResponse> responses = diaryService.getDiariesByRegionCode("SAMSONG", 0, 4);
+
+        // Then
+        assertThat(responses.getContent())
+                .extracting(DiaryResponse::diaryId)
+                .containsExactly(
+                        testDiaryOnSep25At3.getId(),
+                        testDiaryOnSep24At4.getId(),
+                        testDiaryOnSep24At3Later.getId(),
+                        testDiaryOnSep24At3.getId());
+    }
+
+    @Test
+    @DisplayName("지역 피드 조회 시 요청한 페이지 크기와 페이지를 반환한다")
+    void getDiariesByRegionCode_returnsRequestedPageSizeAndPage() {
+
+        // Given
+        Member testMember = createMember("testMember@munglog.com", "토토맘");
+
+        Dog testDog = Dog.builder()
+                .member(testMember)
+                .name("토토")
+                .build();
+        dogRepository.save(testDog);
+
+        Diary testDiaryOnSep24At3 = Diary.createDiary(
+                testDog,
+                LocalDate.of(2026, 9, 24),
+                LocalTime.of(3, 0),
+                "SUNNY",
+                true,
+                true
+        );
+
+        Diary testDiaryOnSep24At4 = Diary.createDiary(
+                testDog,
+                LocalDate.of(2026, 9, 24),
+                LocalTime.of(4, 0),
+                "CLOUDY",
+                true,
+                true
+        );
+
+        Diary testDiaryOnSep25At3 = Diary.createDiary(
+                testDog,
+                LocalDate.of(2026, 9, 25),
+                LocalTime.of(3, 0),
+                "SUNNY",
+                true,
+                true
+
+        );
+        diaryRepository.saveAll(List.of(testDiaryOnSep24At3, testDiaryOnSep24At4, testDiaryOnSep25At3));
+
+        // When
+        Page<DiaryResponse> responses = diaryService.getDiariesByRegionCode("SAMSONG", 1, 2);
+
+        // Then
+        assertThat(responses.getContent())
+                .extracting(DiaryResponse::diaryId)
+                .containsExactly(
+                        testDiaryOnSep24At3.getId()
+                );
+
+        assertThat(responses.getTotalElements()).isEqualTo(3);
+        assertThat(responses.getTotalPages()).isEqualTo(2);
+        assertThat(responses.getNumber()).isEqualTo(1);
     }
 }
