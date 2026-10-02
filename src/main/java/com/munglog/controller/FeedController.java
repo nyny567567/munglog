@@ -22,7 +22,7 @@ public class FeedController {
 
     // 지역 피드 조회 API
     @GetMapping
-    public ResponseEntity<Page<DiaryResponse>> getDiariesByRegionCode(
+    public ResponseEntity<Page<DiaryResponse>> getRegionalFeed(
             @RequestParam @NotBlank String regionCode,
             @RequestParam(defaultValue = "0")
             @Min(0)
