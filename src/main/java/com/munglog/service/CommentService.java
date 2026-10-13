@@ -5,10 +5,16 @@ import com.munglog.dto.CommentResponse;
 import com.munglog.entity.Comment;
 import com.munglog.entity.Diary;
 import com.munglog.entity.Member;
+import com.munglog.exception.CommentNotAllowedException;
 import com.munglog.repository.CommentRepository;
 import com.munglog.repository.DiaryRepository;
 import com.munglog.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,12 +43,12 @@ public class CommentService {
                 );
 
         if (!diary.isCommentAllowed()) {
-            throw new IllegalArgumentException("댓글이 허용되지 않은 일기입니다.");
+            throw new CommentNotAllowedException("댓글이 허용되지 않은 일기입니다.");
         }
 
         if (!diary.isPublic()
                 && !diary.getDog().getMember().getId().equals(commentAuthor.getId())) {
-            throw new IllegalArgumentException("비공개 일기에는 댓글을 작성할 수 없습니다.");
+            throw new AccessDeniedException("비공개 일기에는 댓글을 작성할 수 없습니다.");
         }
 
         Comment comment = Comment.createComment(diary, commentAuthor, request.content());
@@ -56,5 +62,44 @@ public class CommentService {
                 savedComment.getCreatedAt());
         return response;
 
+    }
+
+    public Page<CommentResponse> getComments(
+            Long diaryId,
+            String loginEmail,
+            int page,
+            int size
+    ) {
+
+        Diary diary = diaryRepository.findById(diaryId)
+                .orElseThrow(
+                        () -> new IllegalArgumentException("해당 일기를 찾을 수 없습니다.")
+                );
+        Member commentViewer = memberRepository.findByEmail(loginEmail)
+                .orElseThrow(
+                        () -> new IllegalArgumentException("해당 회원을 찾을 수 없습니다.")
+                );
+
+        if (!diary.isPublic()
+                && !diary.getDog().getMember().getId().equals(commentViewer.getId())) {
+            throw new AccessDeniedException("비공개 일기의 댓글을 조회할 수 없습니다.");
+        }
+
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by(Sort.Direction.ASC, "createdAt", "id")
+        );
+
+        Page<Comment> comments = commentRepository.findByDiaryId(diaryId, pageable);
+        Page<CommentResponse> responses = comments.map(comment -> new CommentResponse(
+                comment.getId(),
+                comment.getMember().getId(),
+                comment.getMember().getNickname(),
+                comment.getContent(),
+                comment.getCreatedAt()
+        ));
+
+        return responses;
     }
 }

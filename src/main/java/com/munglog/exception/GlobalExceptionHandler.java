@@ -15,4 +15,11 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
+
+    @ExceptionHandler(CommentNotAllowedException.class)
+    public ResponseEntity<ErrorResponse> handleCommentNotAllowedException(CommentNotAllowedException e) {
+        ErrorResponse response = new ErrorResponse(e.getMessage());
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+    }
 }
