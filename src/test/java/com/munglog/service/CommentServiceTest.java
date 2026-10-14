@@ -19,9 +19,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.transaction.annotation.Transactional;
 
-import org.springframework.security.access.AccessDeniedException;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -329,6 +329,105 @@ public class CommentServiceTest {
         assertThat(responses.getContent())
                 .extracting(CommentResponse::content)
                 .containsExactly("댓글 A");
+    }
+
+    @Test
+    @DisplayName("댓글 작성자 본인은 댓글을 삭제할 수 있다")
+    void deleteComment_successWhenCommentAuthor() {
+
+        // Given
+        Member dogOwner = createMember("dogOwner@munglog.com", "토토누나");
+        Member commentAuthor = createMember("commentAuthor@munglog.com", "댓글주인");
+        Dog dog = createDog(dogOwner, "토토");
+        Diary diary = createDiary(dog, true, true);
+        Comment comment = createComment(diary, commentAuthor, "토토 못생겼어요");
+
+        // When
+        commentService.deleteComment(diary.getId(), comment.getId(), commentAuthor.getEmail());
+
+        // Then
+        entityManager.flush();
+        entityManager.clear();
+        assertThat(commentRepository.findById(comment.getId())).isEmpty();
+    }
+
+    @Test
+    @DisplayName("일기 작성자는 다른 사람의 댓글을 삭제할 수 있다")
+    void deleteComment_successWhenDiaryOwner() {
+
+        // Given
+        Member dogOwner = createMember("dogOwner@munglog.com", "토토누나");
+        Member commentAuthor = createMember("commentAuthor@munglog.com", "댓글주인");
+        Dog dog = createDog(dogOwner, "토토");
+        Diary diary = createDiary(dog, true, true);
+        Comment comment = createComment(diary, commentAuthor, "토토 왜이렇게 뚱뚱해요?");
+
+        // When
+        commentService.deleteComment(diary.getId(), comment.getId(), dogOwner.getEmail());
+
+        // Then
+        entityManager.flush();
+        entityManager.clear();
+        assertThat(commentRepository.findById(comment.getId())).isEmpty();
+    }
+
+    @Test
+    @DisplayName("댓글 작성자도 일기 작성자도 아닌 회원은 댓글을 삭제할 수 없다")
+    void deleteComment_failsWhenNeitherCommentAuthorNorDiaryOwner() {
+
+        // Given
+        Member dogOwner = createMember("dogOwner@munglog.com", "토토누나");
+        Member commentAuthor = createMember("commentAuthor@munglog.com", "댓글주인");
+        Member viewer = createMember("viewer@munglog.com", "나그네");
+        Dog dog = createDog(dogOwner, "토토");
+        Diary diary = createDiary(dog, true, true);
+        Comment comment = createComment(diary, commentAuthor, "돈이 없어요");
+
+        // When & Then
+        assertThatThrownBy(() ->
+                commentService.deleteComment(diary.getId(), comment.getId(), viewer.getEmail())
+        )
+                .isInstanceOf(AccessDeniedException.class)
+                .hasMessage("해당 댓글을 삭제할 권한이 없습니다.");
+
+        assertThat(commentRepository.findById(comment.getId())).isPresent();
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 댓글은 삭제할 수 없다")
+    void deleteComment_failsWhenCommentNotFound() {
+
+        // Given
+        Member loginMember = createMember("loginMember@munglog.com", "로그인 유저");
+        Long nonexistentDiaryId = 999998L;
+        Long nonexistentCommentId = 999999L;
+
+        // When & Then
+        assertThatThrownBy(() ->
+                commentService.deleteComment(nonexistentDiaryId, nonexistentCommentId, loginMember.getEmail())
+        ).isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("해당 댓글을 찾을 수 없습니다.");
+    }
+
+
+    @Test
+    @DisplayName("댓글이 속하지 않은 일기에서는 댓글을 삭제할 수 없다")
+    void deleteComment_failsWhenDiaryIdMismatch() {
+
+        // Given
+        Member dogOwner = createMember("dogOwner@munglog.com", "토토누나");
+        Dog dog = createDog(dogOwner, "토토");
+        Diary diary1 = createDiary(dog, true, true);
+        Diary diary2 = createDiary(dog, true, true);
+        Comment comment = createComment(diary1, dogOwner, "토미야");
+
+        // When & Then
+        assertThatThrownBy(() ->
+                commentService.deleteComment(diary2.getId(), comment.getId(), dogOwner.getEmail())
+        ).isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("해당 일기의 댓글이 아닙니다.");
+
+        assertThat(commentRepository.findById(comment.getId())).isPresent();
     }
 
     private Member createMember(String email, String nickname) {
