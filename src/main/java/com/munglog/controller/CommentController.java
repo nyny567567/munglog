@@ -24,7 +24,7 @@ public class CommentController {
             @Valid @RequestBody CommentRequest commentRequest,
             Authentication authentication
     ) {
-        String email = (String) authentication.getPrincipal();
+        String email = (String) authentication.getName();
 
         if (email == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -42,9 +42,21 @@ public class CommentController {
             @RequestParam(defaultValue = "10") int size,
             Authentication authentication
     ) {
-        String email = (String) authentication.getPrincipal();
+        String email = (String) authentication.getName();
 
         Page<CommentResponse> responses = commentService.getComments(diaryId, email, page, size);
         return ResponseEntity.ok(responses);
+    }
+
+    @DeleteMapping("/{commentId}")
+    public ResponseEntity<Void> deleteComment(
+            @PathVariable Long diaryId,
+            @PathVariable Long commentId,
+            Authentication authentication
+    ) {
+        String email = (String) authentication.getName();
+
+        commentService.deleteComment(diaryId, commentId, email);
+        return ResponseEntity.noContent().build();
     }
 }

@@ -102,4 +102,34 @@ public class CommentService {
 
         return responses;
     }
+
+    @Transactional
+    public void deleteComment(Long diaryId, Long commentId, String loginEmail) {
+
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(
+                        () -> new IllegalArgumentException("해당 댓글을 찾을 수 없습니다.")
+                );
+
+        if (!comment.getDiary().getId().equals(diaryId)) {
+            throw new IllegalArgumentException("해당 일기의 댓글이 아닙니다.");
+        }
+
+        Member loginMember = memberRepository.findByEmail(loginEmail)
+                .orElseThrow(
+                        () -> new IllegalArgumentException("회원을 찾을 수 없습니다.")
+                );
+
+        boolean isCommentAuthor = comment.getMember().getId()
+                .equals(loginMember.getId());
+
+        boolean isDiaryOwner = comment.getDiary().getDog().getMember().getId()
+                .equals(loginMember.getId());
+
+        if (!isCommentAuthor && !isDiaryOwner) {
+            throw new AccessDeniedException("해당 댓글을 삭제할 권한이 없습니다.");
+        }
+
+        commentRepository.delete(comment);
+    }
 }
