@@ -59,7 +59,8 @@ public class CommentService {
                 savedComment.getMember().getId(),
                 savedComment.getMember().getNickname(),
                 savedComment.getContent(),
-                savedComment.getCreatedAt());
+                savedComment.getCreatedAt(),
+                savedComment.getUpdatedAt());
         return response;
 
     }
@@ -97,7 +98,8 @@ public class CommentService {
                 comment.getMember().getId(),
                 comment.getMember().getNickname(),
                 comment.getContent(),
-                comment.getCreatedAt()
+                comment.getCreatedAt(),
+                comment.getUpdatedAt()
         ));
 
         return responses;
@@ -131,5 +133,31 @@ public class CommentService {
         }
 
         commentRepository.delete(comment);
+    }
+
+    @Transactional
+    public void updateComment(Long diaryId, Long commentId, String loginEmail, String content) {
+
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(
+                        () -> new IllegalArgumentException("해당 댓글을 찾을 수 없습니다.")
+                );
+
+        if (!comment.getDiary().getId().equals(diaryId)) {
+            throw new IllegalArgumentException("해당 일기의 댓글이 아닙니다.");
+        }
+
+        Member member = memberRepository.findByEmail(loginEmail)
+                .orElseThrow(
+                        () -> new IllegalArgumentException("회원을 찾을 수 없습니다.")
+                );
+
+        boolean isCommentAuthor = comment.getMember().getId().equals(member.getId());
+
+        if (!isCommentAuthor) {
+            throw new AccessDeniedException("해당 댓글을 수정할 권한이 없습니다.");
+        }
+
+        comment.updateContent(content);
     }
 }
