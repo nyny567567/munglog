@@ -80,6 +80,7 @@ public class CommentServiceTest {
         assertThat(response.nickname()).isEqualTo(commentAuthor.getNickname());
         assertThat(response.content()).isEqualTo(request.content());
         assertThat(response.createdAt()).isNotNull();
+        assertThat(response.updatedAt()).isNull();
     }
 
     @Test
@@ -409,7 +410,6 @@ public class CommentServiceTest {
                 .hasMessage("해당 댓글을 찾을 수 없습니다.");
     }
 
-
     @Test
     @DisplayName("댓글이 속하지 않은 일기에서는 댓글을 삭제할 수 없다")
     void deleteComment_failsWhenDiaryIdMismatch() {
@@ -428,6 +428,174 @@ public class CommentServiceTest {
                 .hasMessage("해당 일기의 댓글이 아닙니다.");
 
         assertThat(commentRepository.findById(comment.getId())).isPresent();
+    }
+
+    @Test
+    @DisplayName("댓글 작성자는 자신의 댓글 내용을 수정할 수 있다")
+    void updateComment_successWhenCommentAuthor() {
+
+        // Given
+        Member dogOwner = createMember("dogOwner@munglog.com", "토토누나");
+        Member commentAuthor = createMember("commentAuthor@munglog.com", "댓글꾼");
+        Dog dog = createDog(dogOwner, "토토");
+        Diary diary = createDiary(dog, true, true);
+        Comment comment = createComment(diary, commentAuthor, "토토 못생겼어요");
+
+        // When
+        commentService.updateComment(diary.getId(), comment.getId(), commentAuthor.getEmail(), "토토 귀엽네요");
+
+        // Then
+        entityManager.flush();
+        entityManager.clear();
+        assertThat(commentRepository.findById(comment.getId()))
+                .get()
+                .extracting(Comment::getContent)
+                .isEqualTo("토토 귀엽네요");
+    }
+
+    @Test
+    @DisplayName("댓글 작성자가 아닌 회원은 댓글을 수정할 수 없다")
+    void updateComment_failsWhenNotCommentAuthor() {
+
+        // Given
+        Member dogOwner = createMember("dogOwner@munglog.com", "토토누나");
+        Member commentAuthor = createMember("commentAuthor@munglog.com", "댓글꾼");
+        Member viewer = createMember("viewer@munglog.com", "토토팬");
+        Dog dog = createDog(dogOwner, "토토");
+        Diary diary = createDiary(dog, true, true);
+        Comment comment = createComment(diary, commentAuthor, "토토 못생겼어요");
+
+        // When & Then
+        assertThatThrownBy(() ->
+                commentService.updateComment(diary.getId(), comment.getId(), viewer.getEmail(), "토토 미남이에요")
+        ).isInstanceOf(AccessDeniedException.class)
+                .hasMessage("해당 댓글을 수정할 권한이 없습니다.");
+
+        entityManager.flush();
+        entityManager.clear();
+        assertThat(commentRepository.findById(comment.getId()))
+                .get()
+                .extracting(Comment::getContent)
+                .isEqualTo("토토 못생겼어요");
+    }
+
+    @Test
+    @DisplayName("댓글 작성자가 아닌 일기 주인은 댓글을 수정할 수 없다")
+    void updateComment_failsWhenDiaryOwnerIsNotCommentAuthor() {
+
+        // Given
+        Member dogOwner = createMember("dogOwner@munglog.com", "토토누나");
+        Member commentAuthor = createMember("commentAuthor@munglog.com", "댓글꾼");
+        Dog dog = createDog(dogOwner, "토토");
+        Diary diary = createDiary(dog, true, true);
+        Comment comment = createComment(diary, commentAuthor, "토토 못생겼어요");
+
+        // When & Then
+        assertThatThrownBy(() ->
+                commentService.updateComment(diary.getId(), comment.getId(), dogOwner.getEmail(), "토토 미남이에요")
+        ).isInstanceOf(AccessDeniedException.class)
+                .hasMessage("해당 댓글을 수정할 권한이 없습니다.");
+
+        entityManager.flush();
+        entityManager.clear();
+        assertThat(commentRepository.findById(comment.getId()))
+                .get()
+                .extracting(Comment::getContent)
+                .isEqualTo("토토 못생겼어요");
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 댓글은 수정할 수 없다")
+    void updateComment_failsWhenCommentNotFound() {
+
+        // Given
+        Member dogOwner = createMember("dogOwner@munglog.com", "토토누나");
+        Dog dog = createDog(dogOwner, "토토");
+        Diary diary = createDiary(dog, true, true);
+        Long nonexistentCommentId = 999999L;
+
+        // When & Then
+        assertThatThrownBy(() ->
+                commentService.updateComment(diary.getId(), nonexistentCommentId, dogOwner.getEmail(), "귀엽네"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("해당 댓글을 찾을 수 없습니다.");
+    }
+
+    @Test
+    @DisplayName("다른 일기에 속한 댓글은 수정할 수 없다")
+    void updateComment_failsWhenDiaryIdMismatch() {
+
+        // Given
+        Member dogOwner = createMember("dogOwner@munglog.com", "토토누나");
+        Dog dog = createDog(dogOwner, "토토");
+        Diary diary1 = createDiary(dog, true, true);
+        Diary diary2 = createDiary(dog, true, true);
+        Comment comment = createComment(diary1, dogOwner, "배고프다");
+
+        // When & Then
+        assertThatThrownBy(() ->
+                commentService.updateComment(diary2.getId(), comment.getId(), dogOwner.getEmail(), "토토가 더 배고프다")
+        ).isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("해당 일기의 댓글이 아닙니다.");
+
+        entityManager.flush();
+        entityManager.clear();
+        assertThat(commentRepository.findById(comment.getId()))
+                .get()
+                .extracting(Comment::getContent)
+                .isEqualTo("배고프다");
+    }
+
+    @Test
+    @DisplayName("댓글을 수정하면 수정 시각이 기록된다")
+    void updateComment_setsUpdatedAt() {
+
+        // Given
+        Member dogOwner = createMember("dogOwner@munglog.com", "토토누나");
+        Member commentAuthor = createMember("commentAuthor@munglog.com", "댓글꾼");
+        Dog dog = createDog(dogOwner, "토토");
+        Diary diary = createDiary(dog, true, true);
+        Comment comment = createComment(diary, commentAuthor, "토토 못생겼어요");
+        LocalDateTime beforeUpdate = LocalDateTime.now();
+
+        // When
+        commentService.updateComment(diary.getId(), comment.getId(), commentAuthor.getEmail(), "토토 귀엽네요");
+
+        LocalDateTime afterUpdate = LocalDateTime.now();
+
+        // Then
+        entityManager.flush();
+        entityManager.clear();
+
+        Comment updatedComment = commentRepository.findById(comment.getId()).orElseThrow();
+
+        assertThat(updatedComment.getUpdatedAt()).isBetween(beforeUpdate, afterUpdate);
+    }
+
+    @Test
+    @DisplayName("수정된 댓글을 조회하면 수정 내용과 수정 시각이 반환된다")
+    void getComments_returnsUpdatedContentAndTime() {
+
+        // Given
+        Member dogOwner = createMember("dogOwner@munglog.com", "토토누나");
+        Dog dog = createDog(dogOwner, "토토");
+        Diary diary = createDiary(dog, true, true);
+        Comment comment = createComment(diary, dogOwner, "토토야");
+        commentService.updateComment(diary.getId(), comment.getId(), dogOwner.getEmail(), "토토 보고싶다");
+
+        // When
+        Page<CommentResponse> commentPage = commentService.getComments(
+                diary.getId(),
+                dogOwner.getEmail(),
+                0,
+                10
+        );
+
+        // Then
+        CommentResponse response = commentPage.getContent().get(0);
+
+        assertThat(response.content()).isEqualTo("토토 보고싶다");
+        assertThat(response.updatedAt()).isNotNull();
     }
 
     private Member createMember(String email, String nickname) {
