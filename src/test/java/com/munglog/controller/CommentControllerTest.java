@@ -308,6 +308,115 @@ public class CommentControllerTest {
         assertThat(commentRepository.findById(comment.getId())).isPresent();
     }
 
+    @Test
+    @DisplayName("댓글 작성자가 댓글을 수정하면 200을 반환한다")
+    void updateComment_successWhenCommentAuthor() throws Exception {
+
+        // Given
+        Member dogOwner = createMember("owner@munglog.com", "토토누나");
+        Dog dog = createDog(dogOwner, "토토");
+        Diary diary = createDiary(dog, true, true);
+        Comment comment = createComment(diary, dogOwner, "토토 못생겼어");
+        Authentication authentication = createAuthentication(dogOwner);
+        String requestBody = """
+                {
+                    "content": "토토 예쁘다!"
+                }
+                """;
+
+        // When & Then
+        mockMvc.perform(patch("/api/diaries/{diaryId}/comments/{commentId}",
+                        diary.getId(),
+                        comment.getId())
+                        .with(authentication(authentication))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").value("토토 예쁘다!"))
+                .andExpect(jsonPath("$.updatedAt").isNotEmpty());
+    }
+
+    @Test
+    @DisplayName("댓글 작성자가 아닌 일기 주인이 댓글을 수정하면 403을 반환한다")
+    void updateComment_failsWhenDiaryOwnerNotCommentAuthor() throws Exception {
+
+        // Given
+        Member dogOwner = createMember("owner@munglog.com", "토토누나");
+        Member commentAuthor = createMember("commentAuthor@munglog.com", "댓글꾼");
+        Dog dog = createDog(dogOwner, "토토");
+        Diary diary = createDiary(dog, true, true);
+        Comment comment = createComment(diary, commentAuthor, "토토 왜이렇게 뚱뚱해요");
+        Authentication authentication = createAuthentication(dogOwner);
+        String requestBody = """
+                {
+                    "content": "토토 날씬하다!"
+                }
+                """;
+
+        // When & Then
+        mockMvc.perform(patch("/api/diaries/{diaryId}/comments/{commentId}",
+                        diary.getId(),
+                        comment.getId())
+                        .with(authentication(authentication))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("댓글 수정 요청의 내용이 공백만 있으면 400을 반환한다")
+    void updateComment_failsWhenContentIsBlank() throws Exception {
+
+        // Given
+        Member dogOwner = createMember("owner@munglog.com", "토토누나");
+        Dog dog = createDog(dogOwner, "토토");
+        Diary diary = createDiary(dog, true, true);
+        Comment comment = createComment(diary, dogOwner, "토토야");
+        Authentication authentication = createAuthentication(dogOwner);
+        String requestBody = """
+                {
+                    "content": "              "
+                }
+                """;
+
+        // When & Then
+        mockMvc.perform(patch("/api/diaries/{diaryId}/comments/{commentId}",
+                        diary.getId(),
+                        comment.getId())
+                        .with(authentication(authentication))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("댓글 수정 요청의 내용이 500자를 초과하면 400을 반환한다")
+    void updateComment_failsWhenContentOver500() throws Exception {
+
+        // Given
+        Member dogOwner = createMember("owner@munglog.com", "토토누나");
+        Dog dog = createDog(dogOwner, "토토");
+        Diary diary = createDiary(dog, true, true);
+        Comment comment = createComment(diary, dogOwner, "토토야");
+        Authentication authentication = createAuthentication(dogOwner);
+        String longContent = "토".repeat(501);
+
+        String requestBody = """
+                {
+                    "content": "%s"
+                }
+                """.formatted(longContent);
+
+        // When & Then
+        mockMvc.perform(patch("/api/diaries/{diaryId}/comments/{commentId}",
+                        diary.getId(),
+                        comment.getId())
+                        .with(authentication(authentication))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isBadRequest());
+    }
+
     private Member createMember(String email, String nickname) {
 
         Member testMember = Member.builder()

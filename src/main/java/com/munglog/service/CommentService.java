@@ -136,7 +136,7 @@ public class CommentService {
     }
 
     @Transactional
-    public void updateComment(Long diaryId, Long commentId, String loginEmail, String content) {
+    public CommentResponse updateComment(Long diaryId, Long commentId, String loginEmail, String content) {
 
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(
@@ -159,5 +159,13 @@ public class CommentService {
         }
 
         comment.updateContent(content);
+
+        return new CommentResponse(
+                comment.getId(),
+                comment.getMember().getId(),
+                comment.getMember().getNickname(),
+                comment.getContent(),
+                comment.getCreatedAt(),
+                comment.getUpdatedAt());
     }
 }
