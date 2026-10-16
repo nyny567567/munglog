@@ -59,4 +59,22 @@ public class CommentController {
         commentService.deleteComment(diaryId, commentId, email);
         return ResponseEntity.noContent().build();
     }
+
+    @PatchMapping("/{commentId}")
+    public ResponseEntity<CommentResponse> updateComment(
+            @PathVariable Long diaryId,
+            @PathVariable Long commentId,
+            @Valid @RequestBody CommentRequest commentRequest,
+            Authentication authentication
+    ) {
+        String email = (String) authentication.getName();
+
+        if (email == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        CommentResponse response = commentService.updateComment(diaryId, commentId, email, commentRequest.content());
+
+        return ResponseEntity.ok(response);
+    }
 }

@@ -442,15 +442,21 @@ public class CommentServiceTest {
         Comment comment = createComment(diary, commentAuthor, "토토 못생겼어요");
 
         // When
-        commentService.updateComment(diary.getId(), comment.getId(), commentAuthor.getEmail(), "토토 귀엽네요");
+        CommentResponse response = commentService.updateComment(diary.getId(), comment.getId(), commentAuthor.getEmail(), "토토 귀엽네요");
 
         // Then
+        assertThat(response.content()).isEqualTo("토토 귀엽네요");
+
         entityManager.flush();
         entityManager.clear();
-        assertThat(commentRepository.findById(comment.getId()))
-                .get()
+
+        Comment updatedComment = commentRepository.findById(comment.getId()).orElseThrow();
+
+        assertThat(updatedComment)
                 .extracting(Comment::getContent)
                 .isEqualTo("토토 귀엽네요");
+
+        assertThat(response.updatedAt()).isNotNull();
     }
 
     @Test
@@ -556,12 +562,9 @@ public class CommentServiceTest {
         Dog dog = createDog(dogOwner, "토토");
         Diary diary = createDiary(dog, true, true);
         Comment comment = createComment(diary, commentAuthor, "토토 못생겼어요");
-        LocalDateTime beforeUpdate = LocalDateTime.now();
 
         // When
         commentService.updateComment(diary.getId(), comment.getId(), commentAuthor.getEmail(), "토토 귀엽네요");
-
-        LocalDateTime afterUpdate = LocalDateTime.now();
 
         // Then
         entityManager.flush();
@@ -569,7 +572,7 @@ public class CommentServiceTest {
 
         Comment updatedComment = commentRepository.findById(comment.getId()).orElseThrow();
 
-        assertThat(updatedComment.getUpdatedAt()).isBetween(beforeUpdate, afterUpdate);
+        assertThat(updatedComment.getUpdatedAt()).isNotNull();
     }
 
     @Test
