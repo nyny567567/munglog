@@ -19,6 +19,10 @@ public class DiaryPage {
     @Column(length = 2048)
     private String mediaUrl;
 
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "media_id", unique = true)
+    private Media media;
+
     //일기 텍스트 내용
     @Column(columnDefinition = "TEXT")
     private String content;
