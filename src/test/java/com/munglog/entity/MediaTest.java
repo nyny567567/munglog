@@ -9,7 +9,7 @@ class MediaTest {
 
     @Test
     @DisplayName("이미지를 생성하면 전달한 정보와 IMAGE 타입이 올바르게 설정된다")
-    void createImage_success() {
+    void createImage_succeeds() {
 
         // Given
         Member member = createMember("testMember@munglog.com", "토토누나");
@@ -52,7 +52,7 @@ class MediaTest {
     }
 
     @Test
-    @DisplayName("파일 크기가 20MiB를 초과하면 이미지 생성에 실패한다")
+    @DisplayName("이미지 파일 크기가 20MiB를 초과하면 이미지 생성에 실패한다")
     void createImage_failsWhenFileSizeExceedsMax() {
 
         // Given
@@ -61,7 +61,7 @@ class MediaTest {
         // When & Then
         assertThatThrownBy(() -> Media.createImage(testMember, "s3KeyForTest", 20L * 1024 * 1024 + 1))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("파일 크기는 20MiB를 초과할 수 없습니다.");
+                .hasMessage("이미지 파일 크기는 20MiB를 초과할 수 없습니다.");
     }
 
     @Test
@@ -115,7 +115,7 @@ class MediaTest {
 
     @Test
     @DisplayName("동영상을 생성하면 전달한 정보와 VIDEO 타입이 올바르게 설정된다")
-    void createVideo_success() {
+    void createVideo_succeeds() {
 
         // Given
         Member member = createMember("testMember@munglog.com", "토토누나");
@@ -132,6 +132,60 @@ class MediaTest {
     }
 
     @Test
+    @DisplayName("동영상 크기가 정확히 300MiB이면 생성에 성공한다")
+    void createVideo_succeedsWhenFileSizeIsMax() {
+
+        // Given
+        Member member = createMember("testMember@munglog.com", "토토누나");
+
+        // When
+        Media testVideo = Media.createVideo(member, "s3KeyForTest", 300L * 1024 * 1024, 1);
+
+        // Then
+        assertThat(testVideo.getFileSize()).isEqualTo(300L * 1024 * 1024);
+    }
+
+    @Test
+    @DisplayName("동영상 크기가 300MiB를 초과하면 생성에 실패한다")
+    void createVideo_failsWhenFileSizeExceedsMax() {
+
+        // Given
+        Member member = createMember("testMember@munglog.com", "토토누나");
+
+        // When & Then
+        assertThatThrownBy(() -> Media.createVideo(member, "s3KeyForTest", 300L * 1024 * 1024 + 1, 1))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("동영상 파일 크기는 300MiB를 초과할 수 없습니다.");
+    }
+
+    @Test
+    @DisplayName("동영상 재생시간이 정확히 30초면 생성에 성공한다")
+    void createVideo_succeedsWhenDurationIsMax() {
+
+        // Given
+        Member member = createMember("testMember@munglog.com", "토토누나");
+
+        // When
+        Media testVideo = Media.createVideo(member, "s3KeyForTest", 50L, 30);
+
+        // Then
+        assertThat(testVideo.getDurationSeconds()).isEqualTo(30);
+    }
+
+    @Test
+    @DisplayName("동영상 재생시간이 30초를 초과하면 생성에 실패한다")
+    void createVideo_failsWhenDurationExceedsMax() {
+
+        // Given
+        Member member = createMember("testMember@munglog.com", "토토누나");
+
+        // When & Then
+        assertThatThrownBy(() -> Media.createVideo(member, "s3KeyForTest", 50L, 31))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("동영상 재생 시간은 0초 초과 30초 이하여야 합니다.");
+    }
+
+    @Test
     @DisplayName("동영상 재생시간이 null이면 동영상 생성에 실패한다")
     void createVideo_failsWhenDurationIsNull() {
 
@@ -141,7 +195,7 @@ class MediaTest {
         // When & Then
         assertThatThrownBy(() -> Media.createVideo(member, "s3KeyForTest", 50L, null))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("동영상 재생 시간은 0초를 넘어야 합니다.");
+                .hasMessage("동영상 재생 시간은 0초 초과 30초 이하여야 합니다.");
     }
 
     @Test
@@ -154,7 +208,7 @@ class MediaTest {
         // When & Then
         assertThatThrownBy(() -> Media.createVideo(member, "s3KeyForTest", 50L, 0))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("동영상 재생 시간은 0초를 넘어야 합니다.");
+                .hasMessage("동영상 재생 시간은 0초 초과 30초 이하여야 합니다.");
     }
 
     @Test
@@ -167,7 +221,7 @@ class MediaTest {
         // When & Then
         assertThatThrownBy(() -> Media.createVideo(member, "s3KeyForTest", 50L, -1))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("동영상 재생 시간은 0초를 넘어야 합니다.");
+                .hasMessage("동영상 재생 시간은 0초 초과 30초 이하여야 합니다.");
     }
 
     private Member createMember(String email, String nickname) {

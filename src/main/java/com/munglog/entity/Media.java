@@ -15,7 +15,9 @@ import java.time.LocalDateTime;
 @EntityListeners(AuditingEntityListener.class)
 public class Media {
 
-    private static final long MAX_FILE_SIZE_BYTES = 20L * 1024 * 1024;
+    private static final long MAX_IMAGE_FILE_SIZE_BYTES = 20L * 1024 * 1024;
+    private static final long MAX_VIDEO_FILE_SIZE_BYTES = 300L * 1024 * 1024;
+    private static final int MAX_VIDEO_FILE_DURATION_SECONDS = 30;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -74,12 +76,18 @@ public class Media {
         if (fileSize <= 0) {
             throw new IllegalArgumentException("파일 크기는 0보다 커야 합니다.");
         }
-        if (fileSize > MAX_FILE_SIZE_BYTES) {
-            throw new IllegalArgumentException("파일 크기는 20MiB를 초과할 수 없습니다.");
+        if (mediaType == null) {
+            throw new IllegalArgumentException("미디어 타입은 필수입니다.");
+        }
+        if (mediaType == MediaType.IMAGE && fileSize > MAX_IMAGE_FILE_SIZE_BYTES) {
+            throw new IllegalArgumentException("이미지 파일 크기는 20MiB를 초과할 수 없습니다.");
+        }
+        if (mediaType == MediaType.VIDEO && fileSize > MAX_VIDEO_FILE_SIZE_BYTES) {
+            throw new IllegalArgumentException("동영상 파일 크기는 300MiB를 초과할 수 없습니다.");
         }
         if (mediaType == MediaType.VIDEO &&
-                (durationSeconds == null || durationSeconds <= 0)) {
-            throw new IllegalArgumentException("동영상 재생 시간은 0초를 넘어야 합니다.");
+                (durationSeconds == null || durationSeconds <= 0 || durationSeconds > MAX_VIDEO_FILE_DURATION_SECONDS)) {
+            throw new IllegalArgumentException("동영상 재생 시간은 0초 초과 30초 이하여야 합니다.");
         }
     }
 
